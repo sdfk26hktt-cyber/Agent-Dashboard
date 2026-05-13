@@ -1,0 +1,205 @@
+'use server'
+
+import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
+
+import bcrypt from 'bcryptjs'
+
+export async function createAgent(data: FormData) {
+  const name = data.get('name') as string
+  const role = data.get('role') as string
+  const startDate = data.get('startDate') as string
+  const supervisorId = data.get('supervisorId') as string | null
+  const email = data.get('email') as string
+  const password = data.get('password') as string
+
+  const hashedPassword = await bcrypt.hash(password, 10)
+
+  await prisma.agent.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      startDate: new Date(startDate),
+      supervisorId: supervisorId || null,
+    }
+  })
+
+  revalidatePath('/')
+  revalidatePath('/agents')
+}
+
+export async function addDeal(agentId: string, data: FormData) {
+  const address = data.get('address') as string
+  const type = data.get('type') as string
+  const dateClosed = data.get('dateClosed') as string
+
+  await prisma.deal.create({
+    data: {
+      address,
+      type,
+      dateClosed: new Date(dateClosed),
+      agentId,
+    }
+  })
+
+  revalidatePath(`/agents/${agentId}`)
+  revalidatePath('/')
+}
+
+export async function graduateAgent(agentId: string) {
+  await prisma.agent.update({
+    where: { id: agentId },
+    data: {
+      role: 'TEAM_AGENT',
+      graduatedAt: new Date(),
+    }
+  })
+
+  revalidatePath(`/agents/${agentId}`)
+  revalidatePath('/')
+}
+
+export async function addCostEntry(data: FormData) {
+  const month = data.get('month') as string
+  const totalAmount = parseFloat(data.get('totalAmount') as string)
+  const showingPartnerId = data.get('showingPartnerId') as string
+
+  const sp = await prisma.agent.findUnique({
+    where: { id: showingPartnerId },
+    include: { supervisor: true }
+  })
+
+  if (!sp || !sp.supervisorId) throw new Error('Showing Partner must have a supervisor')
+
+  // Logic: 
+  // Is this the first SP for the supervisor?
+  // We need to check if the supervisor has older SPs, or if THIS agent has the override flag checked.
+  const supervisorSps = await prisma.agent.findMany({
+    where: { supervisorId: sp.supervisorId },
+    orderBy: { startDate: 'asc' }
+  })
+
+  // If ANY agent has the override, they are the first SP. If none do, we use the oldest.
+  const overriddenSp = supervisorSps.find(s => s.isFirstSpOverride);
+  let isFirstSp = false;
+  if (overriddenSp) {
+    isFirstSp = overriddenSp.id === showingPartnerId;
+  } else {
+    isFirstSp = supervisorSps.length > 0 && supervisorSps[0].id === showingPartnerId;
+  }
+  
+  const spStartDate = new Date(sp.startDate)
+  const costMonth = new Date(month)
+  const monthsDiff = (costMonth.getTime() - spStartDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+
+  let userShare = totalAmount / 2
+  let supervisorShare = totalAmount / 2
+
+  // If first SP, user covers first 3 months (approx 3 months = ~90 days, let's use < 3)
+  if (isFirstSp && monthsDiff < 3 && monthsDiff >= 0) {
+    userShare = totalAmount
+    supervisorShare = 0
+  }
+
+  await prisma.costEntry.create({
+    data: {
+      month: costMonth,
+      totalAmount,
+      userShare,
+      supervisorShare,
+      showingPartnerId
+    }
+  })
+
+  revalidatePath('/costs')
+}
+
+export async function addGciEntry(teamAgentId: string, data: FormData) {
+  const month = data.get('month') as string
+  const amount = parseFloat(data.get('amount') as string)
+  const sourceAgentId = data.get('sourceAgentId') as string | null
+
+  await prisma.gciEntry.create({
+    data: {
+      month: new Date(month + '-01T00:00:00.000Z'),
+      amount,
+      teamAgentId,
+      sourceAgentId: sourceAgentId || null
+    }
+  })
+
+  revalidatePath(`/agents/${teamAgentId}`)
+  revalidatePath('/')
+}
+
+export async function toggleFirstSpOverride(agentId: string, value: boolean) {
+  // If we're setting this one to true, we should probably set all siblings to false first, 
+  // but since we look for the first one with the flag anyway, setting this one to true is enough.
+  // For safety, let's just update this agent.
+  
+  await prisma.agent.update({
+    where: { id: agentId },
+    data: { isFirstSpOverride: value }
+  })
+
+  revalidatePath(`/agents/${agentId}`)
+  revalidatePath('/agents')
+  revalidatePath('/')
+  revalidatePath('/costs')
+}
+
+export async function deleteAgent(agentId: string) {
+  // Thanks to cascade deletion in the schema, 
+  // deleting the agent will automatically delete their deals, gciEntries, and costEntries.
+  await prisma.agent.delete({
+    where: { id: agentId }
+  })
+
+  revalidatePath('/')
+  revalidatePath('/agents')
+  revalidatePath('/costs')
+}
+
+export async function updateDeal(dealId: string, address: string, type: string, dateClosed: string) {
+  await prisma.deal.update({
+    where: { id: dealId },
+    data: { address, type, dateClosed: new Date(dateClosed) }
+  })
+  revalidatePath('/agents/[id]', 'page')
+}
+
+export async function deleteDeal(dealId: string) {
+  await prisma.deal.delete({ where: { id: dealId } })
+  revalidatePath('/agents/[id]', 'page')
+}
+
+export async function updateGci(gciId: string, amount: number, month: string) {
+  await prisma.gciEntry.update({
+    where: { id: gciId },
+    data: { amount, month: new Date(month + '-01T00:00:00.000Z') }
+  })
+  revalidatePath('/agents/[id]', 'page')
+}
+
+export async function deleteGci(gciId: string) {
+  await prisma.gciEntry.delete({ where: { id: gciId } })
+  revalidatePath('/agents/[id]', 'page')
+}
+
+export async function editAgentProfile(agentId: string, name: string, email: string, password?: string) {
+  const dataToUpdate: any = { name, email }
+  
+  if (password) {
+    dataToUpdate.password = await bcrypt.hash(password, 10)
+  }
+
+  await prisma.agent.update({
+    where: { id: agentId },
+    data: dataToUpdate
+  })
+
+  revalidatePath(`/agents/${agentId}`)
+  revalidatePath('/agents')
+}

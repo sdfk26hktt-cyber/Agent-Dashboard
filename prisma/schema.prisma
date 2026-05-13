@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id             String    @id @default(cuid())
+  email          String?   @unique
+  password       String?
+  name           String
+  role           String    @default("SHOWING_PARTNER") // ADMIN, TEAM_AGENT, or SHOWING_PARTNER
+  startDate      DateTime
+  graduatedAt    DateTime?
+  
+  // Self-relation: An agent can be supervised by another agent
+  supervisorId   String?
+  supervisor     Agent?    @relation("SupervisorToAgent", fields: [supervisorId], references: [id])
+  showingPartners Agent[]  @relation("SupervisorToAgent")
+
+  deals          Deal[]
+  costEntries    CostEntry[]
+  gciEntries     GciEntry[] @relation("TeamAgentGci")
+  generatedGcis  GciEntry[] @relation("GciSource")
+  isFirstSpOverride Boolean @default(false)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+
+
+model Deal {
+  id        String   @id @default(cuid())
+  address   String
+  type      String // DATABANK or SOI
+  dateClosed DateTime
+  
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+model CostEntry {
+  id               String   @id @default(cuid())
+  month            DateTime // Store the 1st of the month for which the cost applies
+  totalAmount      Float    @default(2500) // $30k / 12 months = $2500
+  userShare        Float
+  supervisorShare  Float
+
+  showingPartnerId String
+  showingPartner   Agent    @relation(fields: [showingPartnerId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model GciEntry {
+  id               String   @id @default(cuid())
+  month            DateTime
+  amount           Float
+
+  teamAgentId      String
+  teamAgent        Agent    @relation("TeamAgentGci", fields: [teamAgentId], references: [id], onDelete: Cascade)
+
+  sourceAgentId    String?
+  sourceAgent      Agent?   @relation("GciSource", fields: [sourceAgentId], references: [id], onDelete: SetNull)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
