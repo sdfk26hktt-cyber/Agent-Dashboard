@@ -26,7 +26,7 @@ export default async function RootLayout({
             <div className="header-content">
               <div className="logo" style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
                 BURDS Tracker
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>v3.5</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>v3.6</span>
               </div>
               <nav className="nav-links no-print">
                 {session ? (
