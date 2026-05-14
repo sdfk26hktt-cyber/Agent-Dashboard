@@ -134,16 +134,22 @@ export async function addGciEntry(teamAgentId: string, data: FormData) {
   revalidatePath('/')
 }
 
-export async function toggleFirstSpOverride(agentId: string, value: boolean) {
-  // If we're setting this one to true, we should probably set all siblings to false first, 
-  // but since we look for the first one with the flag anyway, setting this one to true is enough.
-  // For safety, let's just update this agent.
+export async function toggleFirstSpOverride(agentId: string, formData: FormData) {
+  const isOverride = formData.get('isFirstSpOverride') === 'on'
   
+  const targetAgent = await prisma.agent.findUnique({ where: { id: agentId } });
+  if (targetAgent && isOverride && targetAgent.supervisorId) {
+    await prisma.agent.updateMany({
+      where: { supervisorId: targetAgent.supervisorId },
+      data: { isFirstSpOverride: false }
+    });
+  }
+
   await prisma.agent.update({
     where: { id: agentId },
-    data: { isFirstSpOverride: value }
+    data: { isFirstSpOverride: isOverride }
   })
-
+  
   revalidatePath(`/agents/${agentId}`)
   revalidatePath('/agents')
   revalidatePath('/')

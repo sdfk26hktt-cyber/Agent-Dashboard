@@ -32,6 +32,7 @@ export default async function NewAgent() {
             <select id="role" name="role" className="input" required>
               <option value="SHOWING_PARTNER">Showing Partner</option>
               <option value="TEAM_AGENT">Team Agent</option>
+              <option value="ADMIN">Admin</option>
             </select>
           </div>
 

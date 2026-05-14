@@ -106,6 +106,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   const addDealAction = addDeal.bind(null, agent.id);
   const graduateAction = graduateAgent.bind(null, agent.id);
   const gciAction = addGciEntry.bind(null, agent.id);
+  const overrideAction = toggleFirstSpOverride.bind(null, agent.id);
 
   return (
     <div>
@@ -326,10 +327,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
           {isAdmin && isShowingPartner && (
             <div className="card" style={{ marginTop: '2rem' }}>
               <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Settings</h2>
-              <form action={async (data) => {
-                'use server'
-                await toggleFirstSpOverride(agent.id, data.get('isFirstSpOverride') === 'on');
-              }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
+              <form action={overrideAction} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
                 <input type="checkbox" id="isFirstSpOverride" name="isFirstSpOverride" defaultChecked={agent.isFirstSpOverride} style={{ width: 'auto' }} />
                 <label htmlFor="isFirstSpOverride" style={{ fontSize: '0.875rem' }}>Force 1st SP Status (Override 3-month cost offset)</label>
                 <button type="submit" className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', marginLeft: 'auto' }}>Save</button>
