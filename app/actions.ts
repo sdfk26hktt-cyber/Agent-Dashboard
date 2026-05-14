@@ -185,11 +185,15 @@ export async function deleteGci(gciId: string) {
   revalidatePath('/agents/[id]', 'page')
 }
 
-export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, isFirstSpOverride?: boolean) {
+export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, isFirstSpOverride?: boolean, startDateStr?: string) {
   const dataToUpdate: any = { name, email: email.toLowerCase().trim() }
   
   if (password) {
     dataToUpdate.password = await bcrypt.hash(password, 10)
+  }
+
+  if (startDateStr) {
+    dataToUpdate.startDate = new Date(startDateStr + 'T00:00:00.000Z')
   }
 
   if (isFirstSpOverride !== undefined) {

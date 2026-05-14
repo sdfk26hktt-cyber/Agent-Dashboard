@@ -39,6 +39,18 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
     include: { sourceAgent: true }
   });
 
+  // Fetch Deals for Team Agents
+  const targetMonthEnd = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+  const deals = await prisma.deal.findMany({
+    where: {
+      agentId: id,
+      dateClosed: {
+        gte: targetDate,
+        lte: targetMonthEnd
+      }
+    }
+  });
+
   const supervisorSps = await prisma.agent.findMany({
     where: { supervisorId: id },
     orderBy: { startDate: 'asc' }
@@ -140,6 +152,19 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
               </td>
               <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#16a34a' }}>
                 -${cost.supervisorShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </td>
+            </tr>
+          ))}
+          {deals.map(deal => (
+            <tr key={`deal-${deal.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <td style={{ padding: '1rem 0.75rem' }}>
+                <div style={{ fontWeight: 500 }}>Team Agent Deal Logged</div>
+                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                  Property: {deal.address} ({deal.type})
+                </div>
+              </td>
+              <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>
+                -
               </td>
             </tr>
           ))}

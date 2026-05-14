@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { editAgentProfile } from '@/app/actions'
 
-export default function AdminEditProfileForm({ agent }: { agent: { id: string, name: string, email: string | null, role: string, isFirstSpOverride: boolean } }) {
+export default function AdminEditProfileForm({ agent }: { agent: { id: string, name: string, email: string | null, role: string, isFirstSpOverride: boolean, startDate: Date } }) {
   const [name, setName] = useState(agent.name)
   const [email, setEmail] = useState(agent.email || '')
   const [password, setPassword] = useState('')
+  const [startDateStr, setStartDateStr] = useState(new Date(agent.startDate).toISOString().substring(0, 10))
   const [isOverride, setIsOverride] = useState(agent.isFirstSpOverride)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -16,7 +17,7 @@ export default function AdminEditProfileForm({ agent }: { agent: { id: string, n
     setLoading(true)
     setMessage('')
     try {
-      await editAgentProfile(agent.id, name, email, password || undefined, isOverride)
+      await editAgentProfile(agent.id, name, email, password || undefined, isOverride, startDateStr)
       setMessage('Profile updated successfully.')
       setPassword('') // clear the password field
     } catch (error) {
@@ -42,6 +43,11 @@ export default function AdminEditProfileForm({ agent }: { agent: { id: string, n
       <div>
         <label className="label" htmlFor="edit-email">Login Email</label>
         <input type="email" id="edit-email" value={email} onChange={e => setEmail(e.target.value)} className="input" required />
+      </div>
+
+      <div>
+        <label className="label" htmlFor="edit-start-date">Start Date</label>
+        <input type="date" id="edit-start-date" value={startDateStr} onChange={e => setStartDateStr(e.target.value)} className="input" required />
       </div>
       
       <div>

@@ -7,6 +7,8 @@ import DeleteAgentButton from '@/app/components/DeleteAgentButton'
 import AdminDealActions from '@/app/components/AdminDealActions'
 import AdminGciActions from '@/app/components/AdminGciActions'
 import AdminEditProfileForm from '@/app/components/AdminEditProfileForm'
+import PointsBreakdownChart from '@/app/components/charts/PointsBreakdownChart'
+import GciHistoryChart from '@/app/components/charts/GciHistoryChart'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 
@@ -56,7 +58,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
 
   // Ledger calculation for Team Agents
   let allCosts: any[] = [];
-  const ledgerMap = new Map<string, { month: Date, totalCost: number, overrideCredit: number, netAmount: number }>();
+  const ledgerMap = new Map<string, { month: Date, totalCost: number, overrideCredit: number, netAmount: number, totalGci: number }>();
   if (!isShowingPartner) {
     allCosts = await prisma.costEntry.findMany({
       where: { showingPartner: { supervisorId: id } },
@@ -67,18 +69,19 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
     for (const gci of agent.gciEntries) {
       const monthKey = gci.month.toISOString().substring(0, 7);
       if (!ledgerMap.has(monthKey)) {
-        ledgerMap.set(monthKey, { month: gci.month, totalCost: 0, overrideCredit: 0, netAmount: 0 });
+        ledgerMap.set(monthKey, { month: gci.month, totalCost: 0, overrideCredit: 0, netAmount: 0, totalGci: 0 });
       }
       const entry = ledgerMap.get(monthKey)!;
       const credit = gci.amount * 0.095;
       entry.overrideCredit += credit;
       entry.netAmount -= credit;
+      entry.totalGci += gci.amount;
     }
 
     for (const cost of allCosts) {
       const monthKey = cost.month.toISOString().substring(0, 7);
       if (!ledgerMap.has(monthKey)) {
-        ledgerMap.set(monthKey, { month: cost.month, totalCost: 0, overrideCredit: 0, netAmount: 0 });
+        ledgerMap.set(monthKey, { month: cost.month, totalCost: 0, overrideCredit: 0, netAmount: 0, totalGci: 0 });
       }
       const entry = ledgerMap.get(monthKey)!;
       entry.totalCost += cost.supervisorShare;
@@ -194,6 +197,10 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                   <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>{pointsFromSoi.toFixed(1)}</div>
                 </div>
               </div>
+
+              <div style={{ marginTop: '2rem' }}>
+                <PointsBreakdownChart tenure={pointsFromTenure} databank={pointsFromDatabank} soi={pointsFromSoi} />
+              </div>
             </div>
           )}
 
@@ -259,6 +266,11 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
               </div>
 
               <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Monthly Ledger & Invoices</h3>
+              {ledgerArray.length > 0 && (
+                <div style={{ marginBottom: '2rem' }}>
+                  <GciHistoryChart data={ledgerArray.slice(0, 12).map(entry => ({ month: entry.month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }), gci: entry.totalGci }))} />
+                </div>
+              )}
               {ledgerArray.length === 0 ? (
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>No ledger data available yet.</p>
               ) : (
@@ -273,7 +285,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                     </tr>
                   </thead>
                   <tbody>
-                    {ledgerArray.map(entry => (
+                    {ledgerArray.slice(0, 12).map(entry => (
                       <tr key={entry.month.toISOString()} style={{ borderBottom: '1px solid var(--border-color)' }}>
                         <td style={{ padding: '0.5rem' }}>{entry.month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</td>
                         <td style={{ padding: '0.5rem' }}>${entry.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -292,8 +304,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
             </div>
           )}
 
-          {isShowingPartner && (
-            <div className="card">
+          <div className="card">
               <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Closed Deals</h2>
               {agent.deals.length === 0 ? (
                 <p style={{ color: 'var(--text-secondary)' }}>No deals logged yet.</p>
@@ -322,29 +333,27 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
         </div>
 
         <div>
-          {isShowingPartner && (
-            <div className="card">
-              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Log New Deal</h2>
-              <form action={addDealAction} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div>
-                  <label className="label" htmlFor="address">Property Address</label>
-                  <input type="text" id="address" name="address" className="input" required placeholder="123 Main St" />
-                </div>
-                <div>
-                  <label className="label" htmlFor="type">Deal Type</label>
-                  <select id="type" name="type" className="input" required>
-                    <option value="DATABANK">Databank (1.2 pts)</option>
-                    <option value="SOI">Sphere of Influence (2.4 pts)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="label" htmlFor="dateClosed">Date Closed</label>
-                  <input type="date" id="dateClosed" name="dateClosed" className="input" required defaultValue={new Date().toISOString().split('T')[0]} />
-                </div>
-                <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Save Deal</button>
-              </form>
-            </div>
-          )}
+          <div className="card">
+            <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Log New Deal</h2>
+            <form action={addDealAction} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="label" htmlFor="address">Property Address</label>
+                <input type="text" id="address" name="address" className="input" required placeholder="123 Main St" />
+              </div>
+              <div>
+                <label className="label" htmlFor="type">Deal Type</label>
+                <select id="type" name="type" className="input" required>
+                  <option value="DATABANK">Databank {isShowingPartner ? '(1.2 pts)' : ''}</option>
+                  <option value="SOI">Sphere of Influence {isShowingPartner ? '(2.4 pts)' : ''}</option>
+                </select>
+              </div>
+              <div>
+                <label className="label" htmlFor="dateClosed">Date Closed</label>
+                <input type="date" id="dateClosed" name="dateClosed" className="input" required defaultValue={new Date().toISOString().split('T')[0]} />
+              </div>
+              <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Save Deal</button>
+            </form>
+          </div>
 
           {isAdmin && isShowingPartner && (
             <div className="card" style={{ marginTop: '2rem' }}>
