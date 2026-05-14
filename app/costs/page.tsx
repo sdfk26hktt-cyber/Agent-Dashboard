@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
-import { addCostEntry } from '@/app/actions'
+import { addCostEntry, deleteCost } from '@/app/actions'
 
 export default async function CostsLedger() {
   const showingPartners = await prisma.agent.findMany({
@@ -66,29 +66,40 @@ export default async function CostsLedger() {
                     <th style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Total</th>
                     <th style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Your Share</th>
                     <th style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Agent Share</th>
+                    <th style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {costEntries.map(entry => (
-                    <tr key={entry.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '0.75rem' }}>
-                        {new Date(entry.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                      </td>
-                      <td style={{ padding: '0.75rem' }}>
-                        <div>{entry.showingPartner.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Sup: {entry.showingPartner.supervisor?.name || 'N/A'}</div>
-                      </td>
-                      <td style={{ padding: '0.75rem', fontWeight: 600 }}>
-                        ${entry.totalAmount.toLocaleString()}
-                      </td>
-                      <td style={{ padding: '0.75rem', color: 'var(--accent-primary)' }}>
-                        ${entry.userShare.toLocaleString()}
-                      </td>
-                      <td style={{ padding: '0.75rem', color: 'var(--success)' }}>
-                        ${entry.supervisorShare.toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
+                  {costEntries.map(entry => {
+                    const deleteAction = deleteCost.bind(null, entry.id);
+                    return (
+                      <tr key={entry.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                        <td style={{ padding: '0.75rem' }}>
+                          {new Date(entry.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        </td>
+                        <td style={{ padding: '0.75rem' }}>
+                          <div>{entry.showingPartner.name}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Sup: {entry.showingPartner.supervisor?.name || 'N/A'}</div>
+                        </td>
+                        <td style={{ padding: '0.75rem', fontWeight: 600 }}>
+                          ${entry.totalAmount.toLocaleString()}
+                        </td>
+                        <td style={{ padding: '0.75rem', color: 'var(--accent-primary)' }}>
+                          ${entry.userShare.toLocaleString()}
+                        </td>
+                        <td style={{ padding: '0.75rem', color: 'var(--success)' }}>
+                          ${entry.supervisorShare.toLocaleString()}
+                        </td>
+                        <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                          <form action={deleteAction}>
+                            <button type="submit" className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'var(--danger)', backgroundColor: 'transparent' }}>
+                              Delete
+                            </button>
+                          </form>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             )}

@@ -125,6 +125,12 @@ export async function addCostEntry(data: FormData) {
   revalidatePath('/costs')
 }
 
+export async function deleteCost(costId: string) {
+  await prisma.costEntry.delete({ where: { id: costId } })
+  revalidatePath('/costs')
+  revalidatePath('/agents/[id]', 'page')
+}
+
 export async function addGciEntry(teamAgentId: string, data: FormData) {
   const month = data.get('month') as string
   const amount = parseFloat(data.get('amount') as string)
