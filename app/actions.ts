@@ -82,35 +82,11 @@ export async function addCostEntry(data: FormData) {
 
   if (!sp || !sp.supervisorId) throw new Error('Showing Partner must have a supervisor')
 
-  // Logic: 
-  // Is this the first SP for the supervisor?
-  // We need to check if the supervisor has older SPs, or if THIS agent has the override flag checked.
-  const supervisorSps = await prisma.agent.findMany({
-    where: { supervisorId: sp.supervisorId },
-    orderBy: { startDate: 'asc' }
-  })
-
-  // If ANY agent has the override, they are the first SP. If none do, we use the oldest.
-  const overriddenSp = supervisorSps.find(s => s.isFirstSpOverride);
-  let isFirstSp = false;
-  if (overriddenSp) {
-    isFirstSp = overriddenSp.id === showingPartnerId;
-  } else {
-    isFirstSp = supervisorSps.length > 0 && supervisorSps[0].id === showingPartnerId;
-  }
-  
   const spStartDate = new Date(sp.startDate)
   const costMonth = new Date(month)
-  const monthsDiff = (costMonth.getTime() - spStartDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
 
-  let userShare = totalAmount / 2
-  let supervisorShare = totalAmount / 2
-
-  // If first SP, user covers first 3 months (approx 3 months = ~90 days, let's use < 3)
-  if (isFirstSp && monthsDiff < 3 && monthsDiff >= 0) {
-    userShare = totalAmount
-    supervisorShare = 0
-  }
+  let userShare = totalAmount * 0.60
+  let supervisorShare = totalAmount * 0.40
 
   await prisma.costEntry.create({
     data: {
@@ -209,11 +185,25 @@ export async function deleteGci(gciId: string) {
   revalidatePath('/agents/[id]', 'page')
 }
 
-export async function editAgentProfile(agentId: string, name: string, email: string, password?: string) {
+export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, isFirstSpOverride?: boolean) {
   const dataToUpdate: any = { name, email: email.toLowerCase().trim() }
   
   if (password) {
     dataToUpdate.password = await bcrypt.hash(password, 10)
+  }
+
+  if (isFirstSpOverride !== undefined) {
+    dataToUpdate.isFirstSpOverride = isFirstSpOverride;
+    
+    if (isFirstSpOverride) {
+      const targetAgent = await prisma.agent.findUnique({ where: { id: agentId } });
+      if (targetAgent && targetAgent.supervisorId) {
+        await prisma.agent.updateMany({
+          where: { supervisorId: targetAgent.supervisorId },
+          data: { isFirstSpOverride: false }
+        });
+      }
+    }
   }
 
   await prisma.agent.update({

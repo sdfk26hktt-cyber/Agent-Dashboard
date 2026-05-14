@@ -83,6 +83,28 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
       const entry = ledgerMap.get(monthKey)!;
       entry.totalCost += cost.supervisorShare;
       entry.netAmount += cost.supervisorShare;
+
+      // Credit back for first 3 months of 1st SP
+      const sp = cost.showingPartner;
+      let isFirstSp = false;
+      const supervisorSps = await prisma.agent.findMany({
+        where: { supervisorId: id },
+        orderBy: { startDate: 'asc' }
+      });
+      const overriddenSp = supervisorSps.find(s => s.isFirstSpOverride);
+      if (overriddenSp) {
+        isFirstSp = overriddenSp.id === sp.id;
+      } else if (supervisorSps.length > 0) {
+        isFirstSp = supervisorSps[0].id === sp.id;
+      }
+
+      if (isFirstSp) {
+        const monthsDiff = (cost.month.getTime() - new Date(sp.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30);
+        if (monthsDiff < 3 && monthsDiff >= 0) {
+          entry.overrideCredit += cost.supervisorShare;
+          entry.netAmount -= cost.supervisorShare;
+        }
+      }
     }
   }
   const ledgerArray = Array.from(ledgerMap.values()).sort((a, b) => b.month.getTime() - a.month.getTime());
