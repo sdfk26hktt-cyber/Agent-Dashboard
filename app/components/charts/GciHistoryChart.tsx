@@ -20,7 +20,7 @@ export default function GciHistoryChart({ data }: { data: { month: string, gci: 
           <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value / 1000}k`} />
           <Tooltip 
-            formatter={(value: number) => [`$${value.toLocaleString()}`, 'GCI']}
+            formatter={(value: any) => [`$${value.toLocaleString()}`, 'GCI']}
             cursor={{ stroke: '#9ca3af', strokeWidth: 1, strokeDasharray: '3 3' }} 
             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} 
           />
