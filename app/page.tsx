@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 
 export default async function Dashboard() {

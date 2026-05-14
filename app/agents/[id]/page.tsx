@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { addDeal, graduateAgent, addGciEntry, toggleFirstSpOverride } from '@/app/actions'
 import { notFound, redirect } from 'next/navigation'

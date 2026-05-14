@@ -10,7 +10,7 @@ export async function createAgent(data: FormData) {
   const role = data.get('role') as string
   const startDate = data.get('startDate') as string
   const supervisorId = data.get('supervisorId') as string | null
-  const email = data.get('email') as string
+  const email = (data.get('email') as string).toLowerCase().trim()
   const password = data.get('password') as string
 
   const hashedPassword = await bcrypt.hash(password, 10)
@@ -189,7 +189,7 @@ export async function deleteGci(gciId: string) {
 }
 
 export async function editAgentProfile(agentId: string, name: string, email: string, password?: string) {
-  const dataToUpdate: any = { name, email }
+  const dataToUpdate: any = { name, email: email.toLowerCase().trim() }
   
   if (password) {
     dataToUpdate.password = await bcrypt.hash(password, 10)
