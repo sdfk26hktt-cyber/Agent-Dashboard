@@ -29,7 +29,9 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
         orderBy: { month: 'desc' }
       },
       showingPartners: {
-        where: { role: 'TEAM_AGENT' } // These are the graduated showing partners
+        include: {
+          deals: true
+        }
       }
     }
   })
@@ -179,14 +181,54 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+                <div style={{ padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Active Showing Partners Status</h3>
+                  {agent.showingPartners.filter(sp => sp.role === 'SHOWING_PARTNER').length === 0 ? (
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>No active showing partners.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {agent.showingPartners.filter(sp => sp.role === 'SHOWING_PARTNER').map(sp => {
+                        const monthsDiff = (new Date().getTime() - new Date(sp.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)
+                        const tenurePoints = Math.max(0, monthsDiff) * 1.5
+                        const dealPoints = sp.deals.reduce((acc: number, deal: any) => acc + (deal.type === 'DATABANK' ? 1.2 : 2.4), 0)
+                        const totalPts = tenurePoints + dealPoints
+                        const progress = Math.min(100, (totalPts / 25) * 100)
+
+                        return (
+                          <div key={sp.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Link href={`/agents/${sp.id}`} style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--primary)' }}>
+                                {sp.name}
+                              </Link>
+                              <span style={{ fontSize: '0.875rem', color: totalPts >= 25 ? 'var(--success)' : 'var(--text-secondary)', fontWeight: totalPts >= 25 ? 600 : 400 }}>
+                                {totalPts.toFixed(1)} / 25 pts
+                              </span>
+                            </div>
+                            <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
+                              <div style={{ width: `${progress}%`, height: '100%', backgroundColor: totalPts >= 25 ? 'var(--success)' : 'var(--primary)' }} />
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                              {sp.deals.length} Deals Logged
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                  <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Graduated Showing Partners</h3>
-                  {agent.showingPartners.length === 0 ? (
-                    <p style={{ fontSize: '0.875rem' }}>No graduated partners yet.</p>
+                  <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Graduated Showing Partners</h3>
+                  {agent.showingPartners.filter(sp => sp.role === 'TEAM_AGENT').length === 0 ? (
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>No graduated partners yet.</p>
                   ) : (
                     <ul style={{ paddingLeft: '1.5rem', fontSize: '0.875rem' }}>
-                      {agent.showingPartners.map(sp => (
-                        <li key={sp.id}>{sp.name}</li>
+                      {agent.showingPartners.filter(sp => sp.role === 'TEAM_AGENT').map(sp => (
+                        <li key={sp.id} style={{ marginBottom: '0.25rem' }}>
+                          <Link href={`/agents/${sp.id}`} style={{ color: 'var(--primary)' }}>
+                            {sp.name}
+                          </Link>
+                        </li>
                       ))}
                     </ul>
                   )}
