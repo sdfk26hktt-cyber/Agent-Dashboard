@@ -12,8 +12,16 @@ export async function createAgent(data: FormData) {
   const supervisorId = data.get('supervisorId') as string | null
   const email = (data.get('email') as string).toLowerCase().trim()
   const password = data.get('password') as string
+  const isFirstSpOverride = data.get('isFirstSpOverride') === 'on'
 
   const hashedPassword = await bcrypt.hash(password, 10)
+
+  if (isFirstSpOverride && supervisorId) {
+    await prisma.agent.updateMany({
+      where: { supervisorId },
+      data: { isFirstSpOverride: false }
+    })
+  }
 
   await prisma.agent.create({
     data: {
@@ -23,6 +31,7 @@ export async function createAgent(data: FormData) {
       role,
       startDate: new Date(startDate),
       supervisorId: supervisorId || null,
+      isFirstSpOverride
     }
   })
 

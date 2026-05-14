@@ -326,12 +326,6 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
 
           {isAdmin && isShowingPartner && (
             <div className="card" style={{ marginTop: '2rem' }}>
-              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Settings</h2>
-              <form action={overrideAction} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-                <input type="checkbox" id="isFirstSpOverride" name="isFirstSpOverride" defaultChecked={agent.isFirstSpOverride} style={{ width: 'auto' }} />
-                <label htmlFor="isFirstSpOverride" style={{ fontSize: '0.875rem' }}>Force 1st SP Status (Override 3-month cost offset)</label>
-                <button type="submit" className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', marginLeft: 'auto' }}>Save</button>
-              </form>
               <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
                 <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Edit Login Credentials</h3>
                 <AdminEditProfileForm agent={agent} />
@@ -346,29 +340,31 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
 
           {!isShowingPartner && (
             <div style={{ marginTop: '2rem' }}>
-              <div className="card">
-                <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Log Monthly GCI</h2>
-                <form action={gciAction} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div>
-                    <label className="label" htmlFor="sourceAgentId">Source Agent (Graduated Showing Partner)</label>
-                    <select id="sourceAgentId" name="sourceAgentId" className="input" required>
-                      <option value="">Select an Agent...</option>
-                      {agent.showingPartners.map(sp => (
-                        <option key={sp.id} value={sp.id}>{sp.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label" htmlFor="month">Month</label>
-                    <input type="month" id="month" name="month" className="input" required defaultValue={new Date().toISOString().substring(0, 7)} />
-                  </div>
-                  <div>
-                    <label className="label" htmlFor="amount">Gross GCI Generated ($)</label>
-                    <input type="number" id="amount" name="amount" className="input" required step="0.01" placeholder="5000.00" />
-                  </div>
-                  <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Save GCI Credit</button>
-                </form>
-              </div>
+              {isAdmin && (
+                <div className="card">
+                  <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Log Monthly GCI</h2>
+                  <form action={gciAction} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                      <label className="label" htmlFor="sourceAgentId">Source Agent (Graduated Showing Partner)</label>
+                      <select id="sourceAgentId" name="sourceAgentId" className="input" required>
+                        <option value="">Select an Agent...</option>
+                        {agent.showingPartners.map(sp => (
+                          <option key={sp.id} value={sp.id}>{sp.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="month">Month</label>
+                      <input type="month" id="month" name="month" className="input" required defaultValue={new Date().toISOString().substring(0, 7)} />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="amount">Gross GCI Generated ($)</label>
+                      <input type="number" id="amount" name="amount" className="input" required step="0.01" placeholder="5000.00" />
+                    </div>
+                    <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Save GCI Credit</button>
+                  </form>
+                </div>
+              )}
 
               {isAdmin && (
                 <div className="card" style={{ marginTop: '2rem' }}>

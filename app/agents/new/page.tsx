@@ -54,6 +54,11 @@ export default async function NewAgent() {
             </p>
           </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <input type="checkbox" id="isFirstSpOverride" name="isFirstSpOverride" style={{ width: 'auto' }} />
+            <label htmlFor="isFirstSpOverride" style={{ fontSize: '0.875rem' }}>Force 1st SP Status (Override 3-month cost offset)</label>
+          </div>
+
           <div style={{ marginTop: '1rem' }}>
             <button type="submit" className="btn">Create Agent</button>
           </div>
