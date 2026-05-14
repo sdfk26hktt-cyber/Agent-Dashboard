@@ -329,7 +329,6 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                 </div>
               )}
             </div>
-          )}
         </div>
 
         <div>
