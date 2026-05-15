@@ -78,8 +78,8 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
     }, 0);
     
     if (monthGci >= 28000) {
-      spBonuses.push({ sp, amount: 600 });
-      totalBonusCost += 600;
+      spBonuses.push({ sp, amount: 750 });
+      totalBonusCost += 750;
     }
   }
 
@@ -149,7 +149,7 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
             {spBonuses.map(bonus => (
               <tr key={`bonus-${bonus.sp.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
                 <td style={{ padding: '1rem 0.75rem' }}>
-                  <div style={{ fontWeight: 500 }}>Showing Partner Bonus Share ($1,500 split)</div>
+                  <div style={{ fontWeight: 500 }}>Showing Partner Bonus Share (50/50 split of $1,500)</div>
                   <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>For: {bonus.sp.name} ($28k+ GCI Achieved)</div>
                 </td>
                 <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500 }}>
