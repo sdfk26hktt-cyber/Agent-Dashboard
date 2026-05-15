@@ -69,71 +69,73 @@ export default function AgentsTableClient({ agents }: { agents: any[] }) {
 
   return (
     <div className="card">
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
-            <th onClick={() => handleSort('name')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
-              Name {getSortIcon('name')}
-            </th>
-            <th onClick={() => handleSort('role')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
-              Role {getSortIcon('role')}
-            </th>
-            <th onClick={() => handleSort('supervisor')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
-              Supervisor {getSortIcon('supervisor')}
-            </th>
-            <th onClick={() => handleSort('startDate')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
-              Start Date {getSortIcon('startDate')}
-            </th>
-            <th onClick={() => handleSort('points')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
-              Points {getSortIcon('points')}
-            </th>
-            <th style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedAgents.length === 0 ? (
-            <tr>
-              <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                No agents found.
-              </td>
+      <div className="table-responsive">
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
+              <th onClick={() => handleSort('name')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
+                Name {getSortIcon('name')}
+              </th>
+              <th onClick={() => handleSort('role')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
+                Role {getSortIcon('role')}
+              </th>
+              <th onClick={() => handleSort('supervisor')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
+                Supervisor {getSortIcon('supervisor')}
+              </th>
+              <th onClick={() => handleSort('startDate')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
+                Start Date {getSortIcon('startDate')}
+              </th>
+              <th onClick={() => handleSort('points')} style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
+                Points {getSortIcon('points')}
+              </th>
+              <th style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Actions</th>
             </tr>
-          ) : (
-            sortedAgents.map(agent => (
-              <tr key={agent.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <td style={{ padding: '0.75rem', fontWeight: 500 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    {agent.name}
-                    {agent.isFirstSp && (
-                      <span className="badge" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#d97706', fontSize: '0.7rem', padding: '0.1rem 0.4rem' }}>
-                        1st SP
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td style={{ padding: '0.75rem' }}>
-                  <span className={`badge ${agent.role === 'TEAM_AGENT' ? 'badge-green' : 'badge-blue'}`}>
-                    {agent.role === 'TEAM_AGENT' ? 'Team Agent' : 'Showing Partner'}
-                  </span>
-                </td>
-                <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>
-                  {agent.supervisor?.name || '-'}
-                </td>
-                <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>
-                  {new Date(agent.startDate).toLocaleDateString()}
-                </td>
-                <td style={{ padding: '0.75rem' }}>
-                  {agent.role === 'SHOWING_PARTNER' ? `${agent.points.toFixed(1)} / 25` : '-'}
-                </td>
-                <td style={{ padding: '0.75rem' }}>
-                  <Link href={`/agents/${agent.id}`} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}>
-                    View Profile
-                  </Link>
+          </thead>
+          <tbody>
+            {sortedAgents.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  No agents found.
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              sortedAgents.map(agent => (
+                <tr key={agent.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <td style={{ padding: '0.75rem', fontWeight: 500 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {agent.name}
+                      {agent.isFirstSp && (
+                        <span className="badge" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#d97706', fontSize: '0.7rem', padding: '0.1rem 0.4rem' }}>
+                          1st SP
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td style={{ padding: '0.75rem' }}>
+                    <span className={`badge ${agent.role === 'TEAM_AGENT' ? 'badge-green' : agent.role === 'EMPIRE_BUILDER' ? 'badge-slate' : 'badge-blue'}`}>
+                      {agent.role === 'TEAM_AGENT' ? 'Team Agent' : agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : 'Showing Partner'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>
+                    {agent.supervisor?.name || '-'}
+                  </td>
+                  <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>
+                    {new Date(agent.startDate).toLocaleDateString()}
+                  </td>
+                  <td style={{ padding: '0.75rem' }}>
+                    {agent.role === 'SHOWING_PARTNER' ? `${agent.points.toFixed(1)} / 25` : '-'}
+                  </td>
+                  <td style={{ padding: '0.75rem' }}>
+                    <Link href={`/agents/${agent.id}`} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}>
+                      View Profile
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

@@ -9,6 +9,7 @@ import AdminGciActions from '@/app/components/AdminGciActions'
 import AdminEditProfileForm from '@/app/components/AdminEditProfileForm'
 import PointsBreakdownChart from '@/app/components/charts/PointsBreakdownChart'
 import GciHistoryChart from '@/app/components/charts/GciHistoryChart'
+import SalesVolumeChart from '@/app/components/charts/SalesVolumeChart'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 
@@ -41,6 +42,8 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   if (!agent) notFound()
 
   const isShowingPartner = agent.role === 'SHOWING_PARTNER'
+  const isEmpireBuilder = agent.role === 'EMPIRE_BUILDER'
+  const isBonusEligible = isShowingPartner || isEmpireBuilder
   
   let isFirstSp = false;
   if (isShowingPartner && agent.supervisorId) {
@@ -128,6 +131,24 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   const progress = Math.min(100, (totalPoints / threshold) * 100);
   const canGraduate = isShowingPartner && totalPoints >= threshold;
 
+  // Bonus Calculation
+  const currentMonthStart = new Date();
+  currentMonthStart.setDate(1);
+  currentMonthStart.setHours(0, 0, 0, 0);
+  
+  let currentMonthGci = 0;
+  if (isBonusEligible) {
+    const currentMonthDeals = agent.deals.filter(d => new Date(d.dateClosed) >= currentMonthStart);
+    currentMonthGci = currentMonthDeals.reduce((acc, d) => {
+      if (d.salesPrice && d.commissionPercentage) {
+        return acc + (d.salesPrice * (d.commissionPercentage / 100));
+      }
+      return acc;
+    }, 0);
+  }
+  const bonusThreshold = 28000;
+  const bonusProgress = Math.min(100, (currentMonthGci / bonusThreshold) * 100);
+
   // Since Next.js requires server actions to be passed properly or defined inline carefully,
   // we use a bound action for addDeal.
   const addDealAction = addDeal.bind(null, agent.id);
@@ -143,8 +164,8 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
           <div>
             <h1 style={{ marginBottom: '0.5rem' }}>{agent.name}</h1>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <span className={`badge ${isShowingPartner ? 'badge-blue' : 'badge-green'}`}>
-                {isShowingPartner ? 'Showing Partner' : 'Team Agent'}
+              <span className={`badge ${agent.role === 'TEAM_AGENT' ? 'badge-green' : agent.role === 'EMPIRE_BUILDER' ? 'badge-slate' : 'badge-blue'}`}>
+                {agent.role === 'TEAM_AGENT' ? 'Team Agent' : agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : 'Showing Partner'}
               </span>
               {isFirstSp && (
                 <span className="badge" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#d97706' }}>
@@ -173,6 +194,30 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {isBonusEligible && (
+            <div className="card">
+              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Current Month Bonus Progress</h2>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span style={{ fontWeight: 600 }}>Total GCI Generated</span>
+                <span>${currentMonthGci.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${bonusThreshold.toLocaleString()}</span>
+              </div>
+              <div className="progress-bar-container" style={{ height: '16px', marginBottom: '2rem' }}>
+                <div className="progress-bar-fill" style={{ width: `${bonusProgress}%` }}></div>
+              </div>
+              {currentMonthGci >= bonusThreshold && (
+                <div style={{ padding: '0.75rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '8px', fontWeight: 500, textAlign: 'center' }}>
+                  🎉 $1,500 Bonus Achieved!
+                </div>
+              )}
+              {currentMonthGci < bonusThreshold && (
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textAlign: 'center' }}>
+                  Generate ${(bonusThreshold - currentMonthGci).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} more GCI this month to earn the $1,500 bonus.
+                </p>
+              )}
+            </div>
+          )}
+
           {isShowingPartner && (
             <div className="card">
               <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Graduation Progress</h2>
@@ -206,7 +251,14 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
             </div>
           )}
 
-          {!isShowingPartner && (
+          {isEmpireBuilder && (
+            <div className="card">
+              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Sales Volume History</h2>
+              <SalesVolumeChart deals={agent.deals} />
+            </div>
+          )}
+
+          {(!isShowingPartner && !isEmpireBuilder) && (
             <div className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2 style={{ fontSize: '1.25rem' }}>Gross Commission Income (GCI)</h2>
@@ -339,41 +391,43 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
         </div>
 
         <div>
-          <div className="card">
-            <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Log New Deal</h2>
-            <form action={addDealAction} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label className="label" htmlFor="address">Property Address</label>
-                <input type="text" id="address" name="address" className="input" required placeholder="123 Main St" />
-              </div>
-              <div>
-                <label className="label" htmlFor="type">Deal Type</label>
-                <select id="type" name="type" className="input" required>
-                  <option value="DATABANK">Databank {isShowingPartner ? '(1.2 pts)' : ''}</option>
-                  <option value="SOI">Sphere of Influence {isShowingPartner ? '(2.4 pts)' : ''}</option>
-                </select>
-              </div>
-              <div>
-                <label className="label" htmlFor="clientName">Client Name (Optional)</label>
-                <input type="text" id="clientName" name="clientName" className="input" placeholder="John Doe" />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          {agent.role !== 'TEAM_AGENT' && (
+            <div className="card" style={{ marginBottom: '2rem' }}>
+              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Log New Deal</h2>
+              <form action={addDealAction} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                  <label className="label" htmlFor="salesPrice">Sales Price ($)</label>
-                  <input type="number" id="salesPrice" name="salesPrice" className="input" step="0.01" placeholder="250000" />
+                  <label className="label" htmlFor="address">Property Address</label>
+                  <input type="text" id="address" name="address" className="input" required placeholder="123 Main St" />
                 </div>
                 <div>
-                  <label className="label" htmlFor="commissionPercentage">Commission (%)</label>
-                  <input type="number" id="commissionPercentage" name="commissionPercentage" className="input" step="0.01" placeholder="3.0" />
+                  <label className="label" htmlFor="type">Deal Type</label>
+                  <select id="type" name="type" className="input" required>
+                    <option value="DATABANK">Databank {isShowingPartner ? '(1.2 pts)' : ''}</option>
+                    <option value="SOI">Sphere of Influence {isShowingPartner ? '(2.4 pts)' : ''}</option>
+                  </select>
                 </div>
-              </div>
-              <div>
-                <label className="label" htmlFor="dateClosed">Date Closed</label>
-                <input type="date" id="dateClosed" name="dateClosed" className="input" required defaultValue={new Date().toISOString().split('T')[0]} />
-              </div>
-              <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Save Deal</button>
-            </form>
-          </div>
+                <div>
+                  <label className="label" htmlFor="clientName">Client Name (Optional)</label>
+                  <input type="text" id="clientName" name="clientName" className="input" placeholder="John Doe" />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label className="label" htmlFor="salesPrice">Sales Price ($)</label>
+                    <input type="number" id="salesPrice" name="salesPrice" className="input" step="0.01" placeholder="250000" />
+                  </div>
+                  <div>
+                    <label className="label" htmlFor="commissionPercentage">Commission (%)</label>
+                    <input type="number" id="commissionPercentage" name="commissionPercentage" className="input" step="0.01" placeholder="3.0" />
+                  </div>
+                </div>
+                <div>
+                  <label className="label" htmlFor="dateClosed">Date Closed</label>
+                  <input type="date" id="dateClosed" name="dateClosed" className="input" required defaultValue={new Date().toISOString().split('T')[0]} />
+                </div>
+                <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Save Deal</button>
+              </form>
+            </div>
+          )}
 
           {isAdmin && isShowingPartner && (
             <div className="card" style={{ marginTop: '2rem' }}>

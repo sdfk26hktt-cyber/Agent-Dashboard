@@ -53,8 +53,36 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
 
   const supervisorSps = await prisma.agent.findMany({
     where: { supervisorId: id },
+    include: {
+      deals: {
+        where: {
+          dateClosed: {
+            gte: targetDate,
+            lte: targetMonthEnd
+          }
+        }
+      }
+    },
     orderBy: { startDate: 'asc' }
   });
+  
+  const spBonuses: { sp: any, amount: number }[] = [];
+  let totalBonusCost = 0;
+  
+  for (const sp of supervisorSps) {
+    const monthGci = sp.deals.reduce((acc: number, d: any) => {
+      if (d.salesPrice && d.commissionPercentage) {
+        return acc + (d.salesPrice * (d.commissionPercentage / 100));
+      }
+      return acc;
+    }, 0);
+    
+    if (monthGci >= 28000) {
+      spBonuses.push({ sp, amount: 600 });
+      totalBonusCost += 600;
+    }
+  }
+
   const overriddenSp = supervisorSps.find(s => s.isFirstSpOverride);
 
   let firstSpCredit = 0;
@@ -83,7 +111,7 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
   const totalGci = gciEntries.reduce((acc, gci) => acc + gci.amount, 0);
   const gciCredit = totalGci * 0.095;
   const overrideCredit = gciCredit + firstSpCredit;
-  const netAmount = totalCost - overrideCredit;
+  const netAmount = totalCost + totalBonusCost - overrideCredit;
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem', backgroundColor: 'white', color: 'black', borderRadius: '8px' }}>
@@ -109,80 +137,93 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
         <p style={{ color: 'var(--text-secondary)' }}>Team Agent</p>
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '3rem' }}>
-        <thead>
-          <tr style={{ borderBottom: '2px solid black', textAlign: 'left' }}>
-            <th style={{ padding: '0.75rem', textTransform: 'uppercase', fontSize: '0.875rem' }}>Description</th>
-            <th style={{ padding: '0.75rem', textTransform: 'uppercase', fontSize: '0.875rem', textAlign: 'right' }}>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {costs.map(cost => (
-            <tr key={cost.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-              <td style={{ padding: '1rem 0.75rem' }}>
-                <div style={{ fontWeight: 500 }}>Showing Partner Cost Share</div>
-                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>For: {cost.showingPartner.name}</div>
-              </td>
-              <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500 }}>
-                ${cost.supervisorShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </td>
+      <div className="table-responsive">
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '3rem', minWidth: '600px' }}>
+          <thead>
+            <tr style={{ borderBottom: '2px solid black', textAlign: 'left' }}>
+              <th style={{ padding: '0.75rem', textTransform: 'uppercase', fontSize: '0.875rem' }}>Description</th>
+              <th style={{ padding: '0.75rem', textTransform: 'uppercase', fontSize: '0.875rem', textAlign: 'right' }}>Amount</th>
             </tr>
-          ))}
-          {gciEntries.map(gci => {
-            const credit = gci.amount * 0.095;
-            return (
-              <tr key={gci.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+          </thead>
+          <tbody>
+            {spBonuses.map(bonus => (
+              <tr key={`bonus-${bonus.sp.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
                 <td style={{ padding: '1rem 0.75rem' }}>
-                  <div style={{ fontWeight: 500 }}>GCI Override Credit (9.5%)</div>
+                  <div style={{ fontWeight: 500 }}>Showing Partner Bonus Share ($1,500 split)</div>
+                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>For: {bonus.sp.name} ($28k+ GCI Achieved)</div>
+                </td>
+                <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500 }}>
+                  ${bonus.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+              </tr>
+            ))}
+            {costs.map(cost => (
+              <tr key={cost.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                <td style={{ padding: '1rem 0.75rem' }}>
+                  <div style={{ fontWeight: 500 }}>Showing Partner Cost Share</div>
+                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>For: {cost.showingPartner.name}</div>
+                </td>
+                <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500 }}>
+                  ${cost.supervisorShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+              </tr>
+            ))}
+            {gciEntries.map(gci => {
+              const credit = gci.amount * 0.095;
+              return (
+                <tr key={gci.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '1rem 0.75rem' }}>
+                    <div style={{ fontWeight: 500 }}>GCI Override Credit (9.5%)</div>
+                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                      Source: {gci.sourceAgent ? gci.sourceAgent.name : 'Unknown/Legacy Agent'} (Gross: ${gci.amount.toLocaleString()})
+                    </div>
+                  </td>
+                  <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#16a34a' }}>
+                    -${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                </tr>
+              );
+            })}
+            {qualifiedFirstSpCosts.map(cost => (
+              <tr key={`credit-${cost.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                <td style={{ padding: '1rem 0.75rem' }}>
+                  <div style={{ fontWeight: 500 }}>1st Showing Partner Override Credit (100%)</div>
                   <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                    Source: {gci.sourceAgent ? gci.sourceAgent.name : 'Unknown/Legacy Agent'} (Gross: ${gci.amount.toLocaleString()})
+                    First 3 Months Offset For: {cost.showingPartner.name}
                   </div>
                 </td>
                 <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#16a34a' }}>
-                  -${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  -${cost.supervisorShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
               </tr>
-            );
-          })}
-          {qualifiedFirstSpCosts.map(cost => (
-            <tr key={`credit-${cost.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-              <td style={{ padding: '1rem 0.75rem' }}>
-                <div style={{ fontWeight: 500 }}>1st Showing Partner Override Credit (100%)</div>
-                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                  First 3 Months Offset For: {cost.showingPartner.name}
-                </div>
-              </td>
-              <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#16a34a' }}>
-                -${cost.supervisorShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </td>
-            </tr>
-          ))}
-          {deals.map(deal => (
-            <tr key={`deal-${deal.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-              <td style={{ padding: '1rem 0.75rem' }}>
-                <div style={{ fontWeight: 500 }}>
-                  Team Agent Deal Logged
-                  {deal.clientName && <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}> - {deal.clientName}</span>}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                  Property: {deal.address} ({deal.type})
-                  {deal.salesPrice && ` | $${deal.salesPrice.toLocaleString()}`}
-                  {deal.commissionPercentage && ` (${deal.commissionPercentage}%)`}
-                </div>
-              </td>
-              <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>
-                -
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            ))}
+            {deals.map(deal => (
+              <tr key={`deal-${deal.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                <td style={{ padding: '1rem 0.75rem' }}>
+                  <div style={{ fontWeight: 500 }}>
+                    Team Agent Deal Logged
+                    {deal.clientName && <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}> - {deal.clientName}</span>}
+                  </div>
+                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                    Property: {deal.address} ({deal.type})
+                    {deal.salesPrice && ` | $${deal.salesPrice.toLocaleString()}`}
+                    {deal.commissionPercentage && ` (${deal.commissionPercentage}%)`}
+                  </div>
+                </td>
+                <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>
+                  -
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <div style={{ width: '300px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e5e7eb' }}>
             <span style={{ color: '#6b7280' }}>Subtotal Costs</span>
-            <span style={{ fontWeight: 500 }}>${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span style={{ fontWeight: 500 }}>${(totalCost + totalBonusCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '2px solid black' }}>
             <span style={{ color: '#6b7280' }}>Total Credits</span>

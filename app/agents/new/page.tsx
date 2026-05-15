@@ -31,6 +31,7 @@ export default async function NewAgent() {
             <label className="label" htmlFor="role">Role</label>
             <select id="role" name="role" className="input" required>
               <option value="SHOWING_PARTNER">Showing Partner</option>
+              <option value="EMPIRE_BUILDER">Empire Builder</option>
               <option value="TEAM_AGENT">Team Agent</option>
               <option value="ADMIN">Admin</option>
             </select>
