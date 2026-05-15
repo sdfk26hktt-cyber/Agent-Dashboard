@@ -29,7 +29,7 @@ export default function AgentsTableClient({ agents }: { agents: any[] }) {
     }
 
     let isFirstSp = false;
-    if (agent.role === 'SHOWING_PARTNER' && agent.supervisor) {
+    if (agent.role === 'SHOWING_PARTNER' && agent.supervisor && !agent.supervisor.disableFirstSpCredit) {
       const overriddenSp = agent.supervisor.showingPartners?.find((sp: any) => sp.isFirstSpOverride);
       if (overriddenSp) {
         isFirstSp = overriddenSp.id === agent.id;

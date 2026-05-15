@@ -62,10 +62,12 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
 
   for (const cost of costs) {
     let isFirstSp = false;
-    if (overriddenSp) {
-      isFirstSp = overriddenSp.id === cost.showingPartnerId;
-    } else if (supervisorSps.length > 0) {
-      isFirstSp = supervisorSps[0].id === cost.showingPartnerId;
+    if (!agent.disableFirstSpCredit) {
+      if (overriddenSp) {
+        isFirstSp = overriddenSp.id === cost.showingPartnerId;
+      } else if (supervisorSps.length > 0) {
+        isFirstSp = supervisorSps[0].id === cost.showingPartnerId;
+      }
     }
 
     if (isFirstSp) {
@@ -158,9 +160,14 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
           {deals.map(deal => (
             <tr key={`deal-${deal.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
               <td style={{ padding: '1rem 0.75rem' }}>
-                <div style={{ fontWeight: 500 }}>Team Agent Deal Logged</div>
+                <div style={{ fontWeight: 500 }}>
+                  Team Agent Deal Logged
+                  {deal.clientName && <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}> - {deal.clientName}</span>}
+                </div>
                 <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
                   Property: {deal.address} ({deal.type})
+                  {deal.salesPrice && ` | $${deal.salesPrice.toLocaleString()}`}
+                  {deal.commissionPercentage && ` (${deal.commissionPercentage}%)`}
                 </div>
               </td>
               <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>

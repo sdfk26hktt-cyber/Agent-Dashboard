@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { editAgentProfile } from '@/app/actions'
 
-export default function AdminEditProfileForm({ agent }: { agent: { id: string, name: string, email: string | null, role: string, isFirstSpOverride: boolean, startDate: Date } }) {
+export default function AdminEditProfileForm({ agent }: { agent: { id: string, name: string, email: string | null, role: string, isFirstSpOverride: boolean, disableFirstSpCredit: boolean, startDate: Date } }) {
   const [name, setName] = useState(agent.name)
   const [email, setEmail] = useState(agent.email || '')
   const [password, setPassword] = useState('')
   const [startDateStr, setStartDateStr] = useState(new Date(agent.startDate).toISOString().substring(0, 10))
   const [isOverride, setIsOverride] = useState(agent.isFirstSpOverride)
+  const [isDisableFirstSp, setIsDisableFirstSp] = useState(agent.disableFirstSpCredit)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -17,7 +18,7 @@ export default function AdminEditProfileForm({ agent }: { agent: { id: string, n
     setLoading(true)
     setMessage('')
     try {
-      await editAgentProfile(agent.id, name, email, password || undefined, isOverride, startDateStr)
+      await editAgentProfile(agent.id, name, email, password || undefined, isOverride, startDateStr, isDisableFirstSp)
       setMessage('Profile updated successfully.')
       setPassword('') // clear the password field
     } catch (error) {
@@ -59,6 +60,13 @@ export default function AdminEditProfileForm({ agent }: { agent: { id: string, n
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
           <input type="checkbox" id="edit-override" checked={isOverride} onChange={e => setIsOverride(e.target.checked)} style={{ width: 'auto' }} />
           <label htmlFor="edit-override" style={{ fontSize: '0.875rem' }}>Force 1st SP Status (Override 3-month cost offset)</label>
+        </div>
+      )}
+
+      {agent.role === 'TEAM_AGENT' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <input type="checkbox" id="edit-disable-first-sp" checked={isDisableFirstSp} onChange={e => setIsDisableFirstSp(e.target.checked)} style={{ width: 'auto' }} />
+          <label htmlFor="edit-disable-first-sp" style={{ fontSize: '0.875rem', color: 'var(--danger)' }}>Disable 1st SP Auto-Credit (Admin Only)</label>
         </div>
       )}
       

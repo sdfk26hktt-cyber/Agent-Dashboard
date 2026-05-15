@@ -43,12 +43,18 @@ export async function addDeal(agentId: string, data: FormData) {
   const address = data.get('address') as string
   const type = data.get('type') as string
   const dateClosed = data.get('dateClosed') as string
+  const clientName = data.get('clientName') as string || null
+  const salesPrice = data.get('salesPrice') ? parseFloat(data.get('salesPrice') as string) : null
+  const commissionPercentage = data.get('commissionPercentage') ? parseFloat(data.get('commissionPercentage') as string) : null
 
   await prisma.deal.create({
     data: {
       address,
       type,
       dateClosed: new Date(dateClosed),
+      clientName,
+      salesPrice,
+      commissionPercentage,
       agentId,
     }
   })
@@ -185,7 +191,7 @@ export async function deleteGci(gciId: string) {
   revalidatePath('/agents/[id]', 'page')
 }
 
-export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, isFirstSpOverride?: boolean, startDateStr?: string) {
+export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, isFirstSpOverride?: boolean, startDateStr?: string, disableFirstSpCredit?: boolean) {
   const dataToUpdate: any = { name, email: email.toLowerCase().trim() }
   
   if (password) {
@@ -194,6 +200,10 @@ export async function editAgentProfile(agentId: string, name: string, email: str
 
   if (startDateStr) {
     dataToUpdate.startDate = new Date(startDateStr + 'T00:00:00.000Z')
+  }
+
+  if (disableFirstSpCredit !== undefined) {
+    dataToUpdate.disableFirstSpCredit = disableFirstSpCredit;
   }
 
   if (isFirstSpOverride !== undefined) {

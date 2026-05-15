@@ -90,15 +90,17 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
       // Credit back for first 3 months of 1st SP
       const sp = cost.showingPartner;
       let isFirstSp = false;
-      const supervisorSps = await prisma.agent.findMany({
-        where: { supervisorId: id },
-        orderBy: { startDate: 'asc' }
-      });
-      const overriddenSp = supervisorSps.find(s => s.isFirstSpOverride);
-      if (overriddenSp) {
-        isFirstSp = overriddenSp.id === sp.id;
-      } else if (supervisorSps.length > 0) {
-        isFirstSp = supervisorSps[0].id === sp.id;
+      if (!agent.disableFirstSpCredit) {
+        const supervisorSps = await prisma.agent.findMany({
+          where: { supervisorId: id },
+          orderBy: { startDate: 'asc' }
+        });
+        const overriddenSp = supervisorSps.find(s => s.isFirstSpOverride);
+        if (overriddenSp) {
+          isFirstSp = overriddenSp.id === sp.id;
+        } else if (supervisorSps.length > 0) {
+          isFirstSp = supervisorSps[0].id === sp.id;
+        }
       }
 
       if (isFirstSp) {
@@ -313,9 +315,14 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                   {agent.deals.map(deal => (
                     <div key={deal.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                       <div>
-                        <div style={{ fontWeight: 500 }}>{deal.address}</div>
+                        <div style={{ fontWeight: 500 }}>
+                          {deal.address}
+                          {deal.clientName && <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}> - {deal.clientName}</span>}
+                        </div>
                         <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                           {new Date(deal.dateClosed).toLocaleDateString()}
+                          {deal.salesPrice && ` | $${deal.salesPrice.toLocaleString()}`}
+                          {deal.commissionPercentage && ` (${deal.commissionPercentage}%)`}
                         </div>
                       </div>
                       <span className={`badge ${deal.type === 'DATABANK' ? 'badge-blue' : 'badge-green'}`}>
@@ -345,6 +352,20 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                   <option value="DATABANK">Databank {isShowingPartner ? '(1.2 pts)' : ''}</option>
                   <option value="SOI">Sphere of Influence {isShowingPartner ? '(2.4 pts)' : ''}</option>
                 </select>
+              </div>
+              <div>
+                <label className="label" htmlFor="clientName">Client Name (Optional)</label>
+                <input type="text" id="clientName" name="clientName" className="input" placeholder="John Doe" />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label className="label" htmlFor="salesPrice">Sales Price ($)</label>
+                  <input type="number" id="salesPrice" name="salesPrice" className="input" step="0.01" placeholder="250000" />
+                </div>
+                <div>
+                  <label className="label" htmlFor="commissionPercentage">Commission (%)</label>
+                  <input type="number" id="commissionPercentage" name="commissionPercentage" className="input" step="0.01" placeholder="3.0" />
+                </div>
               </div>
               <div>
                 <label className="label" htmlFor="dateClosed">Date Closed</label>
