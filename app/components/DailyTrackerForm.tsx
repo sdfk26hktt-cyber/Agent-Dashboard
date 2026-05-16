@@ -111,8 +111,21 @@ export default function DailyTrackerForm({ agentId, agentName, initialData }: { 
       
       const pdfWidth = pdf.internal.pageSize.getWidth()
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+      const pageHeight = pdf.internal.pageSize.getHeight()
       
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
+      let heightLeft = pdfHeight
+      let position = 0
+      
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight)
+      heightLeft -= pageHeight
+      
+      while (heightLeft > 0) {
+        position = position - pageHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight)
+        heightLeft -= pageHeight
+      }
+      
       pdf.save(`Daily_Tracker_${agentName}_${date}.pdf`)
     } catch (e) {
       alert('Failed to generate PDF')
