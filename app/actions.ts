@@ -228,3 +228,50 @@ export async function editAgentProfile(agentId: string, name: string, email: str
   revalidatePath(`/agents/${agentId}`)
   revalidatePath('/agents')
 }
+
+export async function saveDailyTracker(agentId: string, data: any) {
+  // Try to find if there's already a tracker for today for this agent
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const existingTracker = await prisma.dailyTracker.findFirst({
+    where: {
+      agentId,
+      date: {
+        gte: today,
+        lt: tomorrow
+      }
+    }
+  });
+
+  if (existingTracker) {
+    await prisma.dailyTracker.update({
+      where: { id: existingTracker.id },
+      data: {
+        dials: data.dials,
+        pointsData: data.pointsData,
+        totalPoints: data.totalPoints,
+        schedule: data.schedule,
+        prospecting: data.prospecting,
+        notes: data.notes
+      }
+    });
+  } else {
+    await prisma.dailyTracker.create({
+      data: {
+        agentId,
+        date: new Date(),
+        dials: data.dials,
+        pointsData: data.pointsData,
+        totalPoints: data.totalPoints,
+        schedule: data.schedule,
+        prospecting: data.prospecting,
+        notes: data.notes
+      }
+    });
+  }
+
+  revalidatePath('/daily-tracker');
+}

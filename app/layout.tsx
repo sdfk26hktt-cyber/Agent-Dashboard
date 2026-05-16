@@ -32,6 +32,7 @@ export default async function RootLayout({
                 {session ? (
                   <>
                     <Link href="/" className="nav-link">Dashboard</Link>
+                    <Link href="/daily-tracker" className="nav-link">Daily Tracker</Link>
                     {session.user.role === 'ADMIN' && (
                       <>
                         <Link href="/agents" className="nav-link">Agents Directory</Link>
