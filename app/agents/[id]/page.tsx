@@ -9,7 +9,7 @@ import AdminEditProfileForm from '@/app/components/AdminEditProfileForm'
 import PointsBreakdownChart from '@/app/components/charts/PointsBreakdownChart'
 import GciHistoryChart from '@/app/components/charts/GciHistoryChart'
 import SalesVolumeChart from '@/app/components/charts/SalesVolumeChart'
-import PointsEstimator from '@/app/components/PointsEstimator'
+import ProspectTracker from '@/app/components/ProspectTracker'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 
@@ -30,6 +30,9 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
       },
       gciEntries: {
         orderBy: { month: 'desc' }
+      },
+      prospects: {
+        orderBy: { createdAt: 'desc' }
       },
       showingPartners: {
         include: {
@@ -248,7 +251,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                 <PointsBreakdownChart tenure={pointsFromTenure} databank={pointsFromDatabank} soi={pointsFromSoi} />
               </div>
 
-              <PointsEstimator currentPoints={totalPoints} />
+              <ProspectTracker agentId={agent.id} currentPoints={totalPoints} prospects={agent.prospects} />
             </div>
           )}
 

@@ -275,3 +275,51 @@ export async function saveDailyTracker(agentId: string, data: any) {
 
   revalidatePath('/daily-tracker');
 }
+
+export async function addProspect(agentId: string, data: FormData) {
+  const clientName = data.get('clientName') as string;
+  const address = data.get('address') as string;
+  const type = data.get('type') as string;
+  const estimatedSalesPrice = data.get('estimatedSalesPrice') ? parseFloat(data.get('estimatedSalesPrice') as string) : null;
+
+  await prisma.prospect.create({
+    data: {
+      clientName,
+      address,
+      type,
+      estimatedSalesPrice,
+      agentId
+    }
+  });
+
+  revalidatePath(`/agents/${agentId}`);
+}
+
+export async function deleteProspect(prospectId: string, agentId: string) {
+  await prisma.prospect.delete({ where: { id: prospectId } });
+  revalidatePath(`/agents/${agentId}`);
+}
+
+export async function convertProspectToDeal(prospectId: string, agentId: string) {
+  const prospect = await prisma.prospect.findUnique({ where: { id: prospectId } });
+  if (!prospect) return;
+
+  // Create the Deal
+  await prisma.deal.create({
+    data: {
+      address: prospect.address,
+      clientName: prospect.clientName,
+      type: prospect.type,
+      salesPrice: prospect.estimatedSalesPrice,
+      commissionPercentage: 3, // Defaulting to 3%, admin can edit later
+      dateClosed: new Date(),
+      agentId
+    }
+  });
+
+  // Delete the Prospect
+  await prisma.prospect.delete({ where: { id: prospectId } });
+
+  revalidatePath(`/agents/${agentId}`);
+  revalidatePath('/');
+}
