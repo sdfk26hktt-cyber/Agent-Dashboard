@@ -9,6 +9,7 @@ import AdminEditProfileForm from '@/app/components/AdminEditProfileForm'
 import PointsBreakdownChart from '@/app/components/charts/PointsBreakdownChart'
 import GciHistoryChart from '@/app/components/charts/GciHistoryChart'
 import SalesVolumeChart from '@/app/components/charts/SalesVolumeChart'
+import PointsEstimator from '@/app/components/PointsEstimator'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 
@@ -246,6 +247,8 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
               <div style={{ marginTop: '2rem' }}>
                 <PointsBreakdownChart tenure={pointsFromTenure} databank={pointsFromDatabank} soi={pointsFromSoi} />
               </div>
+
+              <PointsEstimator currentPoints={totalPoints} />
             </div>
           )}
 
