@@ -37,6 +37,7 @@ export default async function RootLayout({
                       <>
                         <Link href="/agents" className="nav-link">Agents Directory</Link>
                         <Link href="/costs" className="nav-link">Cost Ledger</Link>
+                        <Link href="/gci" className="nav-link">GCI Ledger</Link>
                       </>
                     )}
                     <LogoutButton />

@@ -1,11 +1,10 @@
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
-import { addDeal, graduateAgent, addGciEntry, toggleFirstSpOverride } from '@/app/actions'
+import { addDeal, graduateAgent, toggleFirstSpOverride } from '@/app/actions'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import DeleteAgentButton from '@/app/components/DeleteAgentButton'
 import AdminDealActions from '@/app/components/AdminDealActions'
-import AdminGciActions from '@/app/components/AdminGciActions'
 import AdminEditProfileForm from '@/app/components/AdminEditProfileForm'
 import PointsBreakdownChart from '@/app/components/charts/PointsBreakdownChart'
 import GciHistoryChart from '@/app/components/charts/GciHistoryChart'
@@ -153,7 +152,6 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   // we use a bound action for addDeal.
   const addDealAction = addDeal.bind(null, agent.id);
   const graduateAction = graduateAgent.bind(null, agent.id);
-  const gciAction = addGciEntry.bind(null, agent.id);
   const overrideAction = toggleFirstSpOverride.bind(null, agent.id);
 
   return (
@@ -446,32 +444,6 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
           {!isShowingPartner && (
             <div style={{ marginTop: '2rem' }}>
               {isAdmin && (
-                <div className="card">
-                  <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Log Monthly GCI</h2>
-                  <form action={gciAction} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div>
-                      <label className="label" htmlFor="sourceAgentId">Source Agent (Graduated Showing Partner)</label>
-                      <select id="sourceAgentId" name="sourceAgentId" className="input" required>
-                        <option value="">Select an Agent...</option>
-                        {agent.showingPartners.map(sp => (
-                          <option key={sp.id} value={sp.id}>{sp.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="label" htmlFor="month">Month</label>
-                      <input type="month" id="month" name="month" className="input" required defaultValue={new Date().toISOString().substring(0, 7)} />
-                    </div>
-                    <div>
-                      <label className="label" htmlFor="amount">Gross GCI Generated ($)</label>
-                      <input type="number" id="amount" name="amount" className="input" required step="0.01" placeholder="5000.00" />
-                    </div>
-                    <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Save GCI Credit</button>
-                  </form>
-                </div>
-              )}
-
-              {isAdmin && (
                 <div className="card" style={{ marginTop: '2rem' }}>
                   <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Admin: Profile Settings</h2>
                   <AdminEditProfileForm agent={agent} />
@@ -481,32 +453,6 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                     <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Permanently remove this Team Agent and all associated data.</p>
                     <DeleteAgentButton agentId={agent.id} agentName={agent.name} />
                   </div>
-                </div>
-              )}
-
-              {isAdmin && agent.gciEntries.length > 0 && (
-                <div className="card" style={{ marginTop: '2rem' }}>
-                  <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Admin: Raw GCI Entries</h2>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '2px solid var(--border-color)', textAlign: 'left' }}>
-                        <th style={{ padding: '0.5rem' }}>Month</th>
-                        <th style={{ padding: '0.5rem' }}>Amount</th>
-                        <th style={{ padding: '0.5rem', textAlign: 'right' }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {agent.gciEntries.map(gci => (
-                        <tr key={gci.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '0.5rem' }}>{new Date(gci.month).toISOString().substring(0, 7)}</td>
-                          <td style={{ padding: '0.5rem' }}>${gci.amount.toLocaleString()}</td>
-                          <td style={{ padding: '0.5rem', textAlign: 'right' }}>
-                            <AdminGciActions gci={gci} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
                 </div>
               )}
             </div>
