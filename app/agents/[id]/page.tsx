@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
-import { addDeal, graduateAgent, toggleFirstSpOverride } from '@/app/actions'
+import { addDeal, graduateAgent, toggleFirstSpOverride, convertToEmpireBuilder } from '@/app/actions'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import DeleteAgentButton from '@/app/components/DeleteAgentButton'
@@ -18,8 +18,20 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
 
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
-  if (session.user.role !== 'ADMIN' && session.user.id !== id) redirect('/')
   const isAdmin = session.user.role === 'ADMIN'
+
+  // Defer auth check until after we check EMPIRE_BUILDER supervisor access
+  let isAuthorized = false;
+  if (isAdmin || session.user.id === id) {
+    isAuthorized = true;
+  } else if (session.user.role === 'EMPIRE_BUILDER') {
+    const loggedInAgent = await prisma.agent.findUnique({ where: { id: session.user.id } });
+    if (loggedInAgent?.supervisorId === id) {
+      isAuthorized = true;
+    }
+  }
+
+  if (!isAuthorized) redirect('/')
 
   const agent = await prisma.agent.findUnique({
     where: { id },
@@ -156,6 +168,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   // we use a bound action for addDeal.
   const addDealAction = addDeal.bind(null, agent.id);
   const graduateAction = graduateAgent.bind(null, agent.id);
+  const convertEmpireAction = convertToEmpireBuilder.bind(null, agent.id);
   const overrideAction = toggleFirstSpOverride.bind(null, agent.id);
 
   return (
@@ -321,6 +334,23 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                     </ul>
                   )}
                 </div>
+
+                <div style={{ padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                  <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Empire Builders</h3>
+                  {agent.showingPartners.filter(sp => sp.role === 'EMPIRE_BUILDER').length === 0 ? (
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>No Empire Builders yet.</p>
+                  ) : (
+                    <ul style={{ paddingLeft: '1.5rem', fontSize: '0.875rem' }}>
+                      {agent.showingPartners.filter(sp => sp.role === 'EMPIRE_BUILDER').map(sp => (
+                        <li key={sp.id} style={{ marginBottom: '0.25rem' }}>
+                          <Link href={`/agents/${sp.id}`} style={{ color: 'var(--primary)' }}>
+                            {sp.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
 
               <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Monthly Ledger & Invoices</h3>
@@ -454,9 +484,21 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                   <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Admin: Profile Settings</h2>
                   <AdminEditProfileForm agent={agent} />
                   
+                  {isShowingPartner && (
+                    <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '2rem' }}>
+                      <h3 style={{ fontSize: '1.25rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>Role Conversion</h3>
+                      <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Instantly convert this showing partner into an Empire Builder.</p>
+                      <form action={convertEmpireAction}>
+                        <button type="submit" className="btn" style={{ backgroundColor: 'var(--primary)' }}>
+                          Convert to Empire Builder
+                        </button>
+                      </form>
+                    </div>
+                  )}
+
                   <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '2rem' }}>
                     <h3 style={{ fontSize: '1.25rem', color: 'var(--danger)', marginBottom: '0.5rem' }}>Danger Zone</h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Permanently remove this Team Agent and all associated data.</p>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Permanently remove this agent and all associated data.</p>
                     <DeleteAgentButton agentId={agent.id} agentName={agent.name} />
                   </div>
                 </div>

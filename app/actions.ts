@@ -76,6 +76,19 @@ export async function graduateAgent(agentId: string) {
   revalidatePath('/')
 }
 
+export async function convertToEmpireBuilder(agentId: string) {
+  await prisma.agent.update({
+    where: { id: agentId },
+    data: {
+      role: 'EMPIRE_BUILDER',
+      graduatedAt: new Date(),
+    }
+  })
+
+  revalidatePath(`/agents/${agentId}`)
+  revalidatePath('/')
+}
+
 export async function addCostEntry(data: FormData) {
   const month = data.get('month') as string
   const totalAmount = parseFloat(data.get('totalAmount') as string)
