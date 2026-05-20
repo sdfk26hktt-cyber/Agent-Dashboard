@@ -20,13 +20,18 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   if (!session) redirect('/login')
   const isAdmin = session.user.role === 'ADMIN'
 
-  // Defer auth check until after we check EMPIRE_BUILDER supervisor access
+  // Defer auth check until after we check supervisor access
   let isAuthorized = false;
   if (isAdmin || session.user.id === id) {
     isAuthorized = true;
   } else if (session.user.role === 'EMPIRE_BUILDER') {
     const loggedInAgent = await prisma.agent.findUnique({ where: { id: session.user.id } });
     if (loggedInAgent?.supervisorId === id) {
+      isAuthorized = true;
+    }
+  } else if (session.user.role === 'TEAM_AGENT') {
+    const targetAgent = await prisma.agent.findUnique({ where: { id } });
+    if (targetAgent?.supervisorId === session.user.id) {
       isAuthorized = true;
     }
   }
@@ -156,7 +161,10 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
     const currentMonthDeals = agent.deals.filter(d => new Date(d.dateClosed) >= currentMonthStart);
     currentMonthGci = currentMonthDeals.reduce((acc, d) => {
       if (d.salesPrice && d.commissionPercentage) {
-        return acc + (d.salesPrice * (d.commissionPercentage / 100));
+        const totalComm = d.salesPrice * (d.commissionPercentage / 100);
+        const referralCost = totalComm * ((d.referralPercentage || 0) / 100);
+        const netComm = totalComm - referralCost;
+        return acc + netComm;
       }
       return acc;
     }, 0);
@@ -306,7 +314,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                               </span>
                             </div>
                             <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
-                              <div style={{ width: `${progress}%`, height: '100%', backgroundColor: totalPts >= 25 ? 'var(--success)' : 'var(--primary)' }} />
+                              <div style={{ width: `${progress}%`, height: '100%', background: totalPts >= 25 ? 'linear-gradient(90deg, #10b981, #34d399)' : 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }} />
                             </div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                               {sp.deals.length} Deals Logged
@@ -409,6 +417,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                           {new Date(deal.dateClosed).toLocaleDateString()}
                           {deal.salesPrice && ` | $${deal.salesPrice.toLocaleString()}`}
                           {deal.commissionPercentage && ` (${deal.commissionPercentage}%)`}
+                          {deal.referralPercentage && deal.referralPercentage > 0 ? ` | -${deal.referralPercentage}% Ref` : ''}
                         </div>
                       </div>
                       <span className={`badge ${deal.type === 'DATABANK' ? 'badge-blue' : 'badge-green'}`}>
@@ -444,7 +453,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                   <label className="label" htmlFor="clientName">Client Name (Optional)</label>
                   <input type="text" id="clientName" name="clientName" className="input" placeholder="John Doe" />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                   <div>
                     <label className="label" htmlFor="salesPrice">Sales Price ($)</label>
                     <input type="number" id="salesPrice" name="salesPrice" className="input" step="0.01" placeholder="250000" />
@@ -452,6 +461,10 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                   <div>
                     <label className="label" htmlFor="commissionPercentage">Commission (%)</label>
                     <input type="number" id="commissionPercentage" name="commissionPercentage" className="input" step="0.01" placeholder="3.0" />
+                  </div>
+                  <div>
+                    <label className="label" htmlFor="referralPercentage">Referral (%)</label>
+                    <input type="number" id="referralPercentage" name="referralPercentage" className="input" step="0.01" placeholder="0" defaultValue="0" />
                   </div>
                 </div>
                 <div>

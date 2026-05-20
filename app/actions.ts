@@ -43,9 +43,10 @@ export async function addDeal(agentId: string, data: FormData) {
   const address = data.get('address') as string
   const type = data.get('type') as string
   const dateClosed = data.get('dateClosed') as string
-  const clientName = data.get('clientName') as string || null
+  const clientName = data.get('clientName') as string | null
   const salesPrice = data.get('salesPrice') ? parseFloat(data.get('salesPrice') as string) : null
   const commissionPercentage = data.get('commissionPercentage') ? parseFloat(data.get('commissionPercentage') as string) : null
+  const referralPercentage = data.get('referralPercentage') ? parseFloat(data.get('referralPercentage') as string) : 0
 
   await prisma.deal.create({
     data: {
@@ -55,6 +56,7 @@ export async function addDeal(agentId: string, data: FormData) {
       clientName,
       salesPrice,
       commissionPercentage,
+      referralPercentage,
       agentId,
     }
   })
@@ -178,10 +180,10 @@ export async function deleteAgent(agentId: string) {
   revalidatePath('/costs')
 }
 
-export async function updateDeal(dealId: string, address: string, type: string, dateClosed: string) {
+export async function updateDeal(dealId: string, address: string, type: string, dateClosed: string, referralPercentage: number = 0) {
   await prisma.deal.update({
     where: { id: dealId },
-    data: { address, type, dateClosed: new Date(dateClosed) }
+    data: { address, type, dateClosed: new Date(dateClosed), referralPercentage }
   })
   revalidatePath('/agents/[id]', 'page')
 }

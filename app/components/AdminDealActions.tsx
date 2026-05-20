@@ -7,6 +7,7 @@ export default function AdminDealActions({ deal }: { deal: any }) {
   const [address, setAddress] = useState(deal.address)
   const [type, setType] = useState(deal.type)
   const [dateClosed, setDateClosed] = useState(new Date(deal.dateClosed).toISOString().split('T')[0])
+  const [referralPercentage, setReferralPercentage] = useState(deal.referralPercentage || 0)
 
   if (isEditing) {
     return (
@@ -17,7 +18,8 @@ export default function AdminDealActions({ deal }: { deal: any }) {
           <option value="DATABANK">Databank</option>
           <option value="SOI">SOI</option>
         </select>
-        <button onClick={async () => { await updateDeal(deal.id, address, type, dateClosed); setIsEditing(false) }} className="btn" style={{ padding: '0.2rem 0.5rem' }}>Save</button>
+        <input type="number" value={referralPercentage} onChange={e => setReferralPercentage(parseFloat(e.target.value))} className="input" style={{ width: '80px', padding: '0.2rem' }} placeholder="Ref %" />
+        <button onClick={async () => { await updateDeal(deal.id, address, type, dateClosed, referralPercentage); setIsEditing(false) }} className="btn" style={{ padding: '0.2rem 0.5rem' }}>Save</button>
         <button onClick={() => setIsEditing(false)} className="btn btn-secondary" style={{ padding: '0.2rem 0.5rem' }}>Cancel</button>
       </div>
     )

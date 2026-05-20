@@ -46,6 +46,7 @@ model Deal {
   clientName String?
   salesPrice Float?
   commissionPercentage Float?
+  referralPercentage Float? @default(0)
   type      String // DATABANK or SOI
   dateClosed DateTime
   
