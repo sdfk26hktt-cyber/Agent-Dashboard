@@ -57,7 +57,7 @@ export default async function NewAgent() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <input type="checkbox" id="isFirstSpOverride" name="isFirstSpOverride" style={{ width: 'auto' }} />
-            <label htmlFor="isFirstSpOverride" style={{ fontSize: '0.875rem' }}>Force 1st SP Status (Override 3-month cost offset)</label>
+            <label htmlFor="isFirstSpOverride" style={{ fontSize: '0.875rem' }}>Team Agent's First Showing Partner (Receives 3-month monthly cost credit)</label>
           </div>
 
           <div style={{ marginTop: '1rem' }}>

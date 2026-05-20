@@ -192,7 +192,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
               </span>
               {isFirstSp && (
                 <span className="badge" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#d97706' }}>
-                  1st SP (Cost Offset)
+                  First SP (3-Month Credit)
                 </span>
               )}
               <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Started: {new Date(agent.startDate).toLocaleDateString()}</span>
@@ -375,7 +375,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                     <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
                       <th style={{ padding: '0.5rem' }}>Month</th>
                       <th style={{ padding: '0.5rem' }}>SP Costs</th>
-                      <th style={{ padding: '0.5rem' }}>Override Credit</th>
+                      <th style={{ padding: '0.5rem' }}>Total Credits</th>
                       <th style={{ padding: '0.5rem' }}>Net Balance</th>
                       <th style={{ padding: '0.5rem' }}>Invoice</th>
                     </tr>

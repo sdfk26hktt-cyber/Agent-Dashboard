@@ -187,7 +187,7 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
             {qualifiedFirstSpCosts.map(cost => (
               <tr key={`credit-${cost.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
                 <td style={{ padding: '1rem 0.75rem' }}>
-                  <div style={{ fontWeight: 500 }}>1st Showing Partner Override Credit (100%)</div>
+                  <div style={{ fontWeight: 500 }}>First Showing Partner 3-Month Cost Credit (100%)</div>
                   <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
                     First 3 Months Offset For: {cost.showingPartner.name}
                   </div>
