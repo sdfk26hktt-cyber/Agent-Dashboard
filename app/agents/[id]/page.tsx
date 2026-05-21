@@ -10,6 +10,7 @@ import PointsBreakdownChart from '@/app/components/charts/PointsBreakdownChart'
 import GciHistoryChart from '@/app/components/charts/GciHistoryChart'
 import SalesVolumeChart from '@/app/components/charts/SalesVolumeChart'
 import ProspectTracker from '@/app/components/ProspectTracker'
+import DailyTrackerGamification from '@/app/components/DailyTrackerGamification'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 
@@ -38,6 +39,10 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
 
   if (!isAuthorized) redirect('/')
 
+  const currentMonthStart = new Date();
+  currentMonthStart.setDate(1);
+  currentMonthStart.setHours(0, 0, 0, 0);
+
   const agent = await prisma.agent.findUnique({
     where: { id },
     include: {
@@ -54,6 +59,13 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
       showingPartners: {
         include: {
           deals: true
+        }
+      },
+      dailyTrackers: {
+        where: {
+          date: {
+            gte: currentMonthStart
+          }
         }
       }
     }
@@ -114,9 +126,6 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   const canGraduate = isShowingPartner && totalPoints >= threshold;
 
   // Bonus Calculation
-  const currentMonthStart = new Date();
-  currentMonthStart.setDate(1);
-  currentMonthStart.setHours(0, 0, 0, 0);
   
   let currentMonthGci = 0;
   if (isBonusEligible) {
@@ -140,6 +149,45 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   const graduateAction = graduateAgent.bind(null, agent.id);
   const convertEmpireAction = convertToEmpireBuilder.bind(null, agent.id);
   const updatePasswordAction = updatePassword.bind(null, agent.id);
+
+  // Gamification Calculations
+  let dailyPoints = 0;
+  let weeklyPoints = 0;
+  let monthlyPoints = 0;
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  // Calculate start of week (Monday)
+  const currentDay = now.getDay();
+  const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay; // if Sunday (0), go back 6 days
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(todayStart.getDate() + diffToMonday);
+
+  // Calculate weekdays in current month
+  let weekdaysInMonth = 0;
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  for (let i = 1; i <= daysInMonth; i++) {
+    const day = new Date(now.getFullYear(), now.getMonth(), i).getDay();
+    if (day !== 0 && day !== 6) weekdaysInMonth++;
+  }
+  const monthlyTarget = weekdaysInMonth * 61;
+
+  for (const dt of agent.dailyTrackers) {
+    const dtDate = new Date(dt.date);
+    const dtDateStart = new Date(dtDate.getFullYear(), dtDate.getMonth(), dtDate.getDate());
+    
+    monthlyPoints += dt.totalPoints;
+    
+    if (dtDateStart >= weekStart) {
+      weeklyPoints += dt.totalPoints;
+    }
+    
+    if (dtDateStart.getTime() === todayStart.getTime()) {
+      dailyPoints += dt.totalPoints;
+    }
+  }
+
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
@@ -148,8 +196,8 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
           <div>
             <h1 style={{ marginBottom: '0.5rem' }}>{agent.name}</h1>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <span className={`badge ${agent.role === 'TEAM_AGENT' ? 'badge-green' : agent.role === 'EMPIRE_BUILDER' ? 'badge-slate' : 'badge-blue'}`}>
-                {agent.role === 'TEAM_AGENT' ? 'Team Agent' : agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : 'Showing Partner'}
+              <span className={`badge ${agent.role === 'TEAM_AGENT' ? 'badge-green' : agent.role === 'EMPIRE_BUILDER' ? 'badge-red' : agent.role === 'ADMIN' ? 'badge-purple' : 'badge-blue'}`}>
+                {agent.role === 'TEAM_AGENT' ? 'Team Agent' : agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : agent.role === 'ADMIN' ? 'Admin' : 'Showing Partner'}
               </span>
               <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Started: {new Date(agent.startDate).toLocaleDateString()}</span>
             </div>
@@ -173,6 +221,8 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <DailyTrackerGamification dailyPoints={dailyPoints} weeklyPoints={weeklyPoints} monthlyPoints={monthlyPoints} monthlyTarget={monthlyTarget} />
+          
           {isBonusEligible && (
             <div className="card">
               <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Current Month Bonus Progress</h2>
