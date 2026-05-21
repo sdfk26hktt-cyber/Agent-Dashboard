@@ -18,6 +18,7 @@ export default async function AgentsList() {
   const showingPartnersCount = allAgents.filter(a => a.role === 'SHOWING_PARTNER').length
   const teamAgentsCount = allAgents.filter(a => a.role === 'TEAM_AGENT').length
   const empireBuildersCount = allAgents.filter(a => a.role === 'EMPIRE_BUILDER').length
+  const adminCount = allAgents.filter(a => a.role === 'ADMIN').length
 
   return (
     <div>
@@ -42,8 +43,12 @@ export default async function AgentsList() {
           <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}>Team Agents</div>
         </div>
         <div className="card" style={{ padding: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#475569' }}>{empireBuildersCount}</div>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--danger)' }}>{empireBuildersCount}</div>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}>Empire Builders</div>
+        </div>
+        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#a855f7' }}>{adminCount}</div>
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}>Admins</div>
         </div>
       </div>
       <AgentsTableClient agents={allAgents} />

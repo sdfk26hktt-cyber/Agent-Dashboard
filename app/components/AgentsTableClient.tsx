@@ -96,8 +96,8 @@ export default function AgentsTableClient({ agents }: { agents: any[] }) {
                     </div>
                   </td>
                   <td style={{ padding: '0.75rem' }}>
-                    <span className={`badge ${agent.role === 'TEAM_AGENT' ? 'badge-green' : agent.role === 'EMPIRE_BUILDER' ? 'badge-slate' : 'badge-blue'}`}>
-                      {agent.role === 'TEAM_AGENT' ? 'Team Agent' : agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : 'Showing Partner'}
+                    <span className={`badge ${agent.role === 'TEAM_AGENT' ? 'badge-green' : agent.role === 'EMPIRE_BUILDER' ? 'badge-red' : agent.role === 'ADMIN' ? 'badge-purple' : 'badge-blue'}`}>
+                      {agent.role === 'TEAM_AGENT' ? 'Team Agent' : agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : agent.role === 'ADMIN' ? 'Admin' : 'Showing Partner'}
                     </span>
                   </td>
                   <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>

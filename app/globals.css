@@ -178,6 +178,8 @@ button {
 .badge-blue { background-color: rgba(59, 130, 246, 0.1); color: #60a5fa; }
 .badge-green { background-color: rgba(16, 185, 129, 0.1); color: #34d399; }
 .badge-slate { background-color: rgba(148, 163, 184, 0.1); color: #94a3b8; }
+.badge-red { background-color: rgba(239, 68, 68, 0.1); color: #f87171; }
+.badge-purple { background-color: rgba(168, 85, 247, 0.1); color: #c084fc; }
 
 @media print {
   body {
