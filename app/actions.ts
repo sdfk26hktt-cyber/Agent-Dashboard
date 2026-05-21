@@ -97,8 +97,8 @@ export async function addCostEntry(data: FormData) {
   const spStartDate = new Date(sp.startDate)
   const costMonth = new Date(month)
 
-  let userShare = totalAmount * 0.60
-  let supervisorShare = totalAmount * 0.40
+  let userShare = totalAmount * 0.50
+  let supervisorShare = totalAmount * 0.50
 
   await prisma.costEntry.create({
     data: {
