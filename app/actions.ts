@@ -180,8 +180,8 @@ export async function deleteGci(gciId: string) {
 export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, startDateStr?: string) {
   const dataToUpdate: any = { name, email: email.toLowerCase().trim() }
   
-  if (password) {
-    dataToUpdate.password = await bcrypt.hash(password, 10)
+  if (password && password.trim().length > 0) {
+    dataToUpdate.password = await bcrypt.hash(password.trim(), 10)
   }
 
   if (startDateStr) {

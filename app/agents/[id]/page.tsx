@@ -513,7 +513,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
             </div>
           )}
 
-          {isAdmin && isShowingPartner && (
+          {isAdmin && (
             <div className="card" style={{ marginTop: '2rem' }}>
               <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
                 <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Edit Login Credentials</h3>

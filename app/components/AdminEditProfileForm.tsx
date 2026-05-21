@@ -16,7 +16,7 @@ export default function AdminEditProfileForm({ agent }: { agent: { id: string, n
     setLoading(true)
     setMessage('')
     try {
-      await editAgentProfile(agent.id, name, email, password || undefined, startDateStr)
+      await editAgentProfile(agent.id, name, email, password, startDateStr)
       setMessage('Profile updated successfully.')
       setPassword('') // clear the password field
     } catch (error) {
