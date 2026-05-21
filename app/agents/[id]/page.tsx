@@ -259,12 +259,26 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                         const totalPts = tenurePoints + dealPoints
                         const progress = Math.min(100, (totalPts / 25) * 100)
 
+                        let totalNetGci = 0;
+                        for (const d of sp.deals) {
+                          if (d.salesPrice && d.commissionPercentage) {
+                            const gross = d.salesPrice * (d.commissionPercentage / 100);
+                            const net = gross * (1 - ((d.referralPercentage || 0) / 100));
+                            totalNetGci += net;
+                          }
+                        }
+
                         return (
                           <div key={sp.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Link href={`/agents/${sp.id}`} style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--primary)' }}>
-                                {sp.name}
-                              </Link>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Link href={`/agents/${sp.id}`} style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--primary)' }}>
+                                  {sp.name}
+                                </Link>
+                                <span className="badge" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#059669', fontSize: '0.7rem', padding: '0.1rem 0.4rem' }}>
+                                  ${totalNetGci.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Net GCI
+                                </span>
+                              </div>
                               <span style={{ fontSize: '0.875rem', color: totalPts >= 25 ? 'var(--success)' : 'var(--text-secondary)', fontWeight: totalPts >= 25 ? 600 : 400 }}>
                                 {totalPts.toFixed(1)} / 25 pts
                               </span>

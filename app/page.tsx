@@ -17,7 +17,7 @@ export default async function Dashboard() {
   }
 
   const teamAgents = await prisma.agent.findMany({
-    where: { role: 'TEAM_AGENT' },
+    where: { role: { in: ['TEAM_AGENT', 'EMPIRE_BUILDER'] } },
     include: {
       showingPartners: {
         include: {
@@ -48,10 +48,6 @@ export default async function Dashboard() {
           </div>
         ) : (
           teamAgents.map(agent => {
-            const overriddenSp = agent.showingPartners.find(sp => sp.isFirstSpOverride);
-            const sortedPartners = [...agent.showingPartners].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-            const firstSpId = overriddenSp ? overriddenSp.id : (sortedPartners.length > 0 ? sortedPartners[0].id : null);
-            
             const currentShowingPartners = agent.showingPartners.filter(sp => sp.role === 'SHOWING_PARTNER');
 
             return (
@@ -63,7 +59,9 @@ export default async function Dashboard() {
                         {agent.name}
                       </h2>
                     </Link>
-                    <span className="badge badge-blue">Team Agent</span>
+                    <span className={`badge ${agent.role === 'EMPIRE_BUILDER' ? 'badge-slate' : 'badge-blue'}`}>
+                      {agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : 'Team Agent'}
+                    </span>
                   </div>
                 </div>
                 
@@ -81,18 +79,24 @@ export default async function Dashboard() {
                       
                       const points = (monthsServed * 1.5) + (databankDeals * 1.2) + (soiDeals * 2.4);
                       const progress = Math.min(100, (points / 25) * 100);
-                      const isFirstSp = sp.id === firstSpId;
+                      // Calculate Net GCI (Gross Commission Less Referrals)
+                      let totalNetGci = 0;
+                      for (const d of sp.deals) {
+                        if (d.salesPrice && d.commissionPercentage) {
+                          const gross = d.salesPrice * (d.commissionPercentage / 100);
+                          const net = gross * (1 - ((d.referralPercentage || 0) / 100));
+                          totalNetGci += net;
+                        }
+                      }
 
                       return (
                         <Link href={`/agents/${sp.id}`} key={sp.id} style={{ display: 'block', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)', transition: 'border-color 0.2s ease' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <strong>{sp.name}</strong>
-                              {isFirstSp && (
-                                <span className="badge" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#d97706', fontSize: '0.7rem', padding: '0.1rem 0.4rem' }}>
-                                  1st SP (Cost Offset)
-                                </span>
-                              )}
+                              <span className="badge" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#059669', fontSize: '0.7rem', padding: '0.1rem 0.4rem' }}>
+                                ${totalNetGci.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Net GCI
+                              </span>
                             </div>
                             <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{points.toFixed(1)} / 25 pts</span>
                           </div>
