@@ -12,16 +12,8 @@ export async function createAgent(data: FormData) {
   const supervisorId = data.get('supervisorId') as string | null
   const email = (data.get('email') as string).toLowerCase().trim()
   const password = data.get('password') as string
-  const isFirstSpOverride = data.get('isFirstSpOverride') === 'on'
 
   const hashedPassword = await bcrypt.hash(password, 10)
-
-  if (isFirstSpOverride && supervisorId) {
-    await prisma.agent.updateMany({
-      where: { supervisorId },
-      data: { isFirstSpOverride: false }
-    })
-  }
 
   await prisma.agent.create({
     data: {
@@ -30,8 +22,7 @@ export async function createAgent(data: FormData) {
       password: hashedPassword,
       role,
       startDate: new Date(startDate),
-      supervisorId: supervisorId || null,
-      isFirstSpOverride
+      supervisorId: supervisorId || null
     }
   })
 
@@ -146,27 +137,7 @@ export async function addGciEntry(teamAgentId: string, data: FormData) {
   revalidatePath('/')
 }
 
-export async function toggleFirstSpOverride(agentId: string, formData: FormData) {
-  const isOverride = formData.get('isFirstSpOverride') === 'on'
-  
-  const targetAgent = await prisma.agent.findUnique({ where: { id: agentId } });
-  if (targetAgent && isOverride && targetAgent.supervisorId) {
-    await prisma.agent.updateMany({
-      where: { supervisorId: targetAgent.supervisorId },
-      data: { isFirstSpOverride: false }
-    });
-  }
 
-  await prisma.agent.update({
-    where: { id: agentId },
-    data: { isFirstSpOverride: isOverride }
-  })
-  
-  revalidatePath(`/agents/${agentId}`)
-  revalidatePath('/agents')
-  revalidatePath('/')
-  revalidatePath('/costs')
-}
 
 export async function deleteAgent(agentId: string) {
   // Thanks to cascade deletion in the schema, 
@@ -180,10 +151,10 @@ export async function deleteAgent(agentId: string) {
   revalidatePath('/costs')
 }
 
-export async function updateDeal(dealId: string, address: string, type: string, dateClosed: string, referralPercentage: number = 0) {
+export async function updateDeal(dealId: string, address: string, type: string, dateClosed: string, referralPercentage: number = 0, clientName: string | null = null, salesPrice: number | null = null, commissionPercentage: number | null = null) {
   await prisma.deal.update({
     where: { id: dealId },
-    data: { address, type, dateClosed: new Date(dateClosed), referralPercentage }
+    data: { address, type, dateClosed: new Date(dateClosed), referralPercentage, clientName, salesPrice, commissionPercentage }
   })
   revalidatePath('/agents/[id]', 'page')
 }
@@ -221,20 +192,6 @@ export async function editAgentProfile(agentId: string, name: string, email: str
     dataToUpdate.disableFirstSpCredit = disableFirstSpCredit;
   }
 
-  if (isFirstSpOverride !== undefined) {
-    dataToUpdate.isFirstSpOverride = isFirstSpOverride;
-    
-    if (isFirstSpOverride) {
-      const targetAgent = await prisma.agent.findUnique({ where: { id: agentId } });
-      if (targetAgent && targetAgent.supervisorId) {
-        await prisma.agent.updateMany({
-          where: { supervisorId: targetAgent.supervisorId },
-          data: { isFirstSpOverride: false }
-        });
-      }
-    }
-  }
-
   await prisma.agent.update({
     where: { id: agentId },
     data: dataToUpdate
@@ -242,6 +199,24 @@ export async function editAgentProfile(agentId: string, name: string, email: str
 
   revalidatePath(`/agents/${agentId}`)
   revalidatePath('/agents')
+}
+
+export async function updatePassword(agentId: string, data: FormData) {
+  const newPassword = data.get('newPassword') as string
+  const confirmPassword = data.get('confirmPassword') as string
+
+  if (!newPassword || newPassword !== confirmPassword) {
+    throw new Error('Passwords do not match')
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+  await prisma.agent.update({
+    where: { id: agentId },
+    data: { password: hashedPassword }
+  })
+
+  revalidatePath(`/agents/${agentId}`)
 }
 
 export async function saveDailyTracker(agentId: string, data: any) {

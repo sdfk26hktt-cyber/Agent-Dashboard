@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
-import { addDeal, graduateAgent, toggleFirstSpOverride, convertToEmpireBuilder } from '@/app/actions'
+import { addDeal, graduateAgent, convertToEmpireBuilder, updatePassword } from '@/app/actions'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import DeleteAgentButton from '@/app/components/DeleteAgentButton'
@@ -64,20 +64,6 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   const isShowingPartner = agent.role === 'SHOWING_PARTNER'
   const isEmpireBuilder = agent.role === 'EMPIRE_BUILDER'
   const isBonusEligible = isShowingPartner || isEmpireBuilder
-  
-  let isFirstSp = false;
-  if (isShowingPartner && agent.supervisorId) {
-    const supervisorSps = await prisma.agent.findMany({
-      where: { supervisorId: agent.supervisorId },
-      orderBy: { startDate: 'asc' }
-    });
-    const overriddenSp = supervisorSps.find(sp => sp.isFirstSpOverride);
-    if (overriddenSp) {
-      isFirstSp = overriddenSp.id === agent.id;
-    } else if (supervisorSps.length > 0) {
-      isFirstSp = supervisorSps[0].id === agent.id;
-    }
-  }
 
   // Ledger calculation for Team Agents
   let allCosts: any[] = [];
@@ -109,30 +95,6 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
       const entry = ledgerMap.get(monthKey)!;
       entry.totalCost += cost.supervisorShare;
       entry.netAmount += cost.supervisorShare;
-
-      // Credit back for first 3 months of 1st SP
-      const sp = cost.showingPartner;
-      let isFirstSp = false;
-      if (!agent.disableFirstSpCredit) {
-        const supervisorSps = await prisma.agent.findMany({
-          where: { supervisorId: id },
-          orderBy: { startDate: 'asc' }
-        });
-        const overriddenSp = supervisorSps.find(s => s.isFirstSpOverride);
-        if (overriddenSp) {
-          isFirstSp = overriddenSp.id === sp.id;
-        } else if (supervisorSps.length > 0) {
-          isFirstSp = supervisorSps[0].id === sp.id;
-        }
-      }
-
-      if (isFirstSp) {
-        const monthsDiff = (cost.month.getTime() - new Date(sp.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30);
-        if (monthsDiff < 3 && monthsDiff >= 0) {
-          entry.overrideCredit += cost.supervisorShare;
-          entry.netAmount -= cost.supervisorShare;
-        }
-      }
     }
   }
   const ledgerArray = Array.from(ledgerMap.values()).sort((a, b) => b.month.getTime() - a.month.getTime());
@@ -177,8 +139,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   const addDealAction = addDeal.bind(null, agent.id);
   const graduateAction = graduateAgent.bind(null, agent.id);
   const convertEmpireAction = convertToEmpireBuilder.bind(null, agent.id);
-  const overrideAction = toggleFirstSpOverride.bind(null, agent.id);
-
+  const updatePasswordAction = updatePassword.bind(null, agent.id);
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
@@ -190,11 +151,6 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
               <span className={`badge ${agent.role === 'TEAM_AGENT' ? 'badge-green' : agent.role === 'EMPIRE_BUILDER' ? 'badge-slate' : 'badge-blue'}`}>
                 {agent.role === 'TEAM_AGENT' ? 'Team Agent' : agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : 'Showing Partner'}
               </span>
-              {isFirstSp && (
-                <span className="badge" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#d97706' }}>
-                  First SP (3-Month Credit)
-                </span>
-              )}
               <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Started: {new Date(agent.startDate).toLocaleDateString()}</span>
             </div>
             {agent.supervisor && (
@@ -472,6 +428,23 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                   <input type="date" id="dateClosed" name="dateClosed" className="input" required defaultValue={new Date().toISOString().split('T')[0]} />
                 </div>
                 <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Save Deal</button>
+              </form>
+            </div>
+          )}
+
+          {session.user.id === agent.id && (
+            <div className="card" style={{ marginTop: '2rem' }}>
+              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Security Settings</h2>
+              <form action={updatePasswordAction} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '400px' }}>
+                <div>
+                  <label className="label" htmlFor="newPassword">New Password</label>
+                  <input type="password" id="newPassword" name="newPassword" className="input" required minLength={6} placeholder="••••••••" />
+                </div>
+                <div>
+                  <label className="label" htmlFor="confirmPassword">Confirm Password</label>
+                  <input type="password" id="confirmPassword" name="confirmPassword" className="input" required minLength={6} placeholder="••••••••" />
+                </div>
+                <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Change Password</button>
               </form>
             </div>
           )}

@@ -83,34 +83,9 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
     }
   }
 
-  const overriddenSp = supervisorSps.find(s => s.isFirstSpOverride);
-
-  let firstSpCredit = 0;
-  const qualifiedFirstSpCosts: any[] = [];
-
-  for (const cost of costs) {
-    let isFirstSp = false;
-    if (!agent.disableFirstSpCredit) {
-      if (overriddenSp) {
-        isFirstSp = overriddenSp.id === cost.showingPartnerId;
-      } else if (supervisorSps.length > 0) {
-        isFirstSp = supervisorSps[0].id === cost.showingPartnerId;
-      }
-    }
-
-    if (isFirstSp) {
-      const monthsDiff = (cost.month.getTime() - new Date(cost.showingPartner.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30);
-      if (monthsDiff < 3 && monthsDiff >= 0) {
-        firstSpCredit += cost.supervisorShare;
-        qualifiedFirstSpCosts.push(cost);
-      }
-    }
-  }
-
   const totalCost = costs.reduce((acc, cost) => acc + cost.supervisorShare, 0);
   const totalGci = gciEntries.reduce((acc, gci) => acc + gci.amount, 0);
-  const gciCredit = totalGci * 0.095;
-  const overrideCredit = gciCredit + firstSpCredit;
+  const overrideCredit = totalGci * 0.095;
   const netAmount = totalCost + totalBonusCost - overrideCredit;
 
   return (
@@ -184,19 +159,6 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
                 </tr>
               );
             })}
-            {qualifiedFirstSpCosts.map(cost => (
-              <tr key={`credit-${cost.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                <td style={{ padding: '1rem 0.75rem' }}>
-                  <div style={{ fontWeight: 500 }}>First Showing Partner 3-Month Cost Credit (100%)</div>
-                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                    First 3 Months Offset For: {cost.showingPartner.name}
-                  </div>
-                </td>
-                <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#16a34a' }}>
-                  -${cost.supervisorShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </td>
-              </tr>
-            ))}
             {deals.map(deal => (
               <tr key={`deal-${deal.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
                 <td style={{ padding: '1rem 0.75rem' }}>
