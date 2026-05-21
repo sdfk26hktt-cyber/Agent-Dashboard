@@ -111,6 +111,7 @@ export default async function Dashboard() {
         ) : (
           teamAgents.map(agent => {
             const currentShowingPartners = agent.showingPartners.filter(sp => sp.role === 'SHOWING_PARTNER');
+            const currentEmpireBuilders = agent.showingPartners.filter(sp => sp.role === 'EMPIRE_BUILDER');
 
             return (
               <div key={agent.id} className="card">
@@ -121,7 +122,7 @@ export default async function Dashboard() {
                         {agent.name}
                       </h2>
                     </Link>
-                    <span className={`badge ${agent.role === 'EMPIRE_BUILDER' ? 'badge-slate' : 'badge-blue'}`}>
+                    <span className={`badge ${agent.role === 'EMPIRE_BUILDER' ? 'badge-red' : 'badge-green'}`}>
                       {agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : 'Team Agent'}
                     </span>
                   </div>
@@ -169,6 +170,43 @@ export default async function Dashboard() {
                       )
                     })}
                   </div>
+                )}
+
+                {currentEmpireBuilders.length > 0 && (
+                  <>
+                    <h3 className="label" style={{ marginTop: '1.5rem' }}>Empire Builders ({currentEmpireBuilders.length})</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                      {currentEmpireBuilders.map(eb => {
+                        let currentMonthNetGci = 0;
+                        for (const d of eb.deals) {
+                          const dealDate = new Date(d.dateClosed);
+                          if (dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear) {
+                            if (d.salesPrice && d.commissionPercentage) {
+                              const gross = d.salesPrice * (d.commissionPercentage / 100);
+                              const net = gross * (1 - ((d.referralPercentage || 0) / 100));
+                              currentMonthNetGci += net;
+                            }
+                          }
+                        }
+                        
+                        const progress = Math.min(100, (currentMonthNetGci / 28000) * 100);
+
+                        return (
+                          <Link href={`/agents/${eb.id}`} key={eb.id} style={{ display: 'block', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)', transition: 'border-color 0.2s ease' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <strong>{eb.name}</strong>
+                              </div>
+                              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>${currentMonthNetGci.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} / $28,000 Bonus</span>
+                            </div>
+                            <div className="progress-bar-container">
+                              <div className="progress-bar-fill" style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #f87171, #ef4444)' }}></div>
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </>
                 )}
               </div>
             )
