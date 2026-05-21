@@ -26,6 +26,54 @@ export default async function Dashboard() {
       }
     }
   })
+  const allShowingPartners = await prisma.agent.findMany({
+    where: { role: 'SHOWING_PARTNER' },
+    include: { deals: true }
+  });
+
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+
+  let currentMonthDealsCount = 0;
+  let currentMonthGrossCommission = 0;
+
+  for (const sp of allShowingPartners) {
+    for (const deal of sp.deals) {
+      const dealDate = new Date(deal.dateClosed);
+      if (dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear) {
+        currentMonthDealsCount++;
+        if (deal.salesPrice && deal.commissionPercentage) {
+           const gross = deal.salesPrice * (deal.commissionPercentage / 100);
+           currentMonthGrossCommission += gross;
+        }
+      }
+    }
+  }
+
+  const targetDeals = 2 * allShowingPartners.length;
+  const targetGci = 28000 * allShowingPartners.length;
+
+  const dealsPercentage = targetDeals > 0 ? Math.min(100, (currentMonthDealsCount / targetDeals) * 100) : 0;
+  const gciPercentage = targetGci > 0 ? Math.min(100, (currentMonthGrossCommission / targetGci) * 100) : 0;
+
+  const CircleProgress = ({ percentage, text, subtext, color }: { percentage: number, text: string, subtext: string, color: string }) => {
+    const radius = 50;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r={radius} stroke="var(--border-color)" strokeWidth="10" fill="none" />
+          <circle cx="60" cy="60" r={radius} stroke={color} strokeWidth="10" fill="none" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" transform="rotate(-90 60 60)" />
+        </svg>
+        <div style={{ marginTop: '-85px', textAlign: 'center', height: '85px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{text}</span>
+        </div>
+        <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', textAlign: 'center', maxWidth: '150px' }}>{subtext}</div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -38,6 +86,20 @@ export default async function Dashboard() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           Add Agent
         </Link>
+      </div>
+      <div className="card" style={{ marginBottom: '2rem', display: 'flex', gap: '3rem', justifyContent: 'center', padding: '2rem' }}>
+        <CircleProgress 
+          percentage={dealsPercentage} 
+          text={`${currentMonthDealsCount} / ${targetDeals}`} 
+          subtext="Monthly SP Deals Goal" 
+          color="#3b82f6" 
+        />
+        <CircleProgress 
+          percentage={gciPercentage} 
+          text={`$${(currentMonthGrossCommission / 1000).toFixed(1)}k / $${(targetGci / 1000).toFixed(0)}k`} 
+          subtext="Monthly SP GCI Goal" 
+          color="#10b981" 
+        />
       </div>
 
       <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>

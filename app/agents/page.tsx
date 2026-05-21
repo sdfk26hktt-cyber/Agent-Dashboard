@@ -15,6 +15,10 @@ export default async function AgentsList() {
     orderBy: { role: 'asc' }
   })
 
+  const showingPartnersCount = allAgents.filter(a => a.role === 'SHOWING_PARTNER').length
+  const teamAgentsCount = allAgents.filter(a => a.role === 'TEAM_AGENT').length
+  const empireBuildersCount = allAgents.filter(a => a.role === 'EMPIRE_BUILDER').length
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -28,6 +32,20 @@ export default async function AgentsList() {
         </Link>
       </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>{showingPartnersCount}</div>
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}>Showing Partners</div>
+        </div>
+        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{teamAgentsCount}</div>
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}>Team Agents</div>
+        </div>
+        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#475569' }}>{empireBuildersCount}</div>
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}>Empire Builders</div>
+        </div>
+      </div>
       <AgentsTableClient agents={allAgents} />
     </div>
   )
