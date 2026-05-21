@@ -28,18 +28,7 @@ export default function AgentsTableClient({ agents }: { agents: any[] }) {
       points = (monthsServed * 1.5) + (databankDeals * 1.2) + (soiDeals * 2.4);
     }
 
-    let isFirstSp = false;
-    if (agent.role === 'SHOWING_PARTNER' && agent.supervisor && !agent.supervisor.disableFirstSpCredit) {
-      const overriddenSp = agent.supervisor.showingPartners?.find((sp: any) => sp.isFirstSpOverride);
-      if (overriddenSp) {
-        isFirstSp = overriddenSp.id === agent.id;
-      } else if (agent.supervisor.showingPartners && agent.supervisor.showingPartners.length > 0) {
-        const sortedPartners = [...agent.supervisor.showingPartners].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-        isFirstSp = sortedPartners[0].id === agent.id;
-      }
-    }
-
-    return { ...agent, points, isFirstSp }
+    return { ...agent, points }
   })
 
   const sortedAgents = [...processedAgents].sort((a, b) => {
@@ -104,11 +93,6 @@ export default function AgentsTableClient({ agents }: { agents: any[] }) {
                   <td style={{ padding: '0.75rem', fontWeight: 500 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       {agent.name}
-                      {agent.isFirstSp && (
-                        <span className="badge" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#d97706', fontSize: '0.7rem', padding: '0.1rem 0.4rem' }}>
-                          1st SP
-                        </span>
-                      )}
                     </div>
                   </td>
                   <td style={{ padding: '0.75rem' }}>

@@ -177,7 +177,7 @@ export async function deleteGci(gciId: string) {
   revalidatePath('/agents/[id]', 'page')
 }
 
-export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, isFirstSpOverride?: boolean, startDateStr?: string, disableFirstSpCredit?: boolean) {
+export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, startDateStr?: string) {
   const dataToUpdate: any = { name, email: email.toLowerCase().trim() }
   
   if (password) {
@@ -186,10 +186,6 @@ export async function editAgentProfile(agentId: string, name: string, email: str
 
   if (startDateStr) {
     dataToUpdate.startDate = new Date(startDateStr + 'T00:00:00.000Z')
-  }
-
-  if (disableFirstSpCredit !== undefined) {
-    dataToUpdate.disableFirstSpCredit = disableFirstSpCredit;
   }
 
   await prisma.agent.update({

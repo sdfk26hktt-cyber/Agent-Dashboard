@@ -27,11 +27,9 @@ model Agent {
 
   deals          Deal[]
   costEntries    CostEntry[]
-  gciEntries     GciEntry[] @relation("TeamAgentGci")
-  generatedGcis  GciEntry[] @relation("GciSource")
-  isFirstSpOverride Boolean @default(false)
-  disableFirstSpCredit Boolean @default(false)
-  dailyTrackers  DailyTracker[]
+  gciEntries           GciEntry[]     @relation("TeamAgentGci")
+  generatedGcis        GciEntry[]     @relation("GciSource")
+  dailyTrackers        DailyTracker[]
   prospects      Prospect[]
   
   createdAt      DateTime  @default(now())
