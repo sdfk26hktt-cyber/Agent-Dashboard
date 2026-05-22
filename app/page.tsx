@@ -102,7 +102,7 @@ export default async function Dashboard() {
         />
       </div>
 
-      <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
+      <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))' }}>
         {teamAgents.length === 0 ? (
           <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem 2rem' }}>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>No Team Agents found.</p>

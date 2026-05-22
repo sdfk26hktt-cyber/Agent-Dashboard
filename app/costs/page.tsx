@@ -20,7 +20,7 @@ export default async function CostsLedger() {
         <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Track the $30,000/year base salary costs for Showing Partners.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '2rem' }}>
+      <div className="sidebar-left-grid">
         <div>
           <div className="card">
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Add Monthly Cost</h2>

@@ -71,7 +71,7 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
         {isAdding && (
           <form action={handleAddProspect} style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h5 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>New Prospect Details</h5>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-grid-2">
               <div>
                 <label className="label" style={{ fontSize: '0.75rem' }}>Client Name</label>
                 <input type="text" name="clientName" className="input" required placeholder="John Doe" />
@@ -81,7 +81,7 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
                 <input type="text" name="address" className="input" required placeholder="123 Main St" />
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-grid-2">
               <div>
                 <label className="label" style={{ fontSize: '0.75rem' }}>Type</label>
                 <select name="type" className="input" required>

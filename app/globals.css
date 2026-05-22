@@ -181,6 +181,36 @@ button {
 .badge-red { background-color: rgba(239, 68, 68, 0.1); color: #f87171; }
 .badge-purple { background-color: rgba(168, 85, 247, 0.1); color: #c084fc; }
 
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.form-grid-sidebar {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 3rem;
+}
+
+.sidebar-left-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 2rem;
+}
+
 @media print {
   body {
     background-color: white !important;
@@ -222,15 +252,8 @@ button {
     padding: 1rem;
   }
 
-  /* Make forms inside grids stack horizontally if they were side-by-side */
-  div[style*="grid-template-columns: 1fr 1fr"],
-  div[style*="gridTemplateColumns: '1fr 1fr'"] {
-    grid-template-columns: 1fr !important;
-  }
-  
-  /* Make main layout grid stack */
-  div[style*="grid-template-columns: 2fr 1fr"],
-  div[style*="gridTemplateColumns: '2fr 1fr'"] {
+  /* CSS classes for grids instead of inline styles */
+  .profile-grid, .form-grid-3, .form-grid-2, .form-grid-sidebar, .sidebar-left-grid {
     grid-template-columns: 1fr !important;
   }
   

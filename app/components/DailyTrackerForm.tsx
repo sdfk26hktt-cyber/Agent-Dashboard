@@ -163,7 +163,7 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '3rem', marginBottom: '3rem' }}>
+        <div className="form-grid-sidebar" style={{ marginBottom: '3rem' }}>
           <div>
             <div style={{ marginBottom: '3rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', borderBottom: '2px solid black', paddingBottom: '0.5rem' }}>
@@ -216,7 +216,7 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
                 <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Dials Tracker</h2>
                 <div style={{ fontWeight: 700 }}>Total: {dials}</div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(35px, 1fr))', gap: '0.5rem' }}>
                 {Array.from({ length: 50 }, (_, i) => i + 1).map(num => (
                   <div 
                     key={num}
@@ -246,7 +246,7 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
             <div>
               <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', borderBottom: '2px solid black', paddingBottom: '0.5rem' }}>Prospecting Times & Totals</h2>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+              <div className="form-grid-2" style={{ marginBottom: '2rem' }}>
                 <div style={{ padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                   <h3 style={{ fontSize: '1rem', marginBottom: '1rem', color: '#4b5563' }}>Session 1</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -266,7 +266,7 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+              <div className="form-grid-2">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: '#111827', color: 'white', borderRadius: '8px' }}>
                   <span style={{ fontWeight: 600, fontSize: '1.125rem' }}>OVERALL TOTAL MIN:</span>
                   <input type="number" value={prospecting.overall.min} onChange={(e) => handleProspectingChange('overall', 'min', e.target.value)} style={{ width: '80px', fontSize: '1.25rem', fontWeight: 700, textAlign: 'right', background: 'transparent', border: 'none', borderBottom: '1px solid #4b5563', color: 'white', outline: 'none' }}/>

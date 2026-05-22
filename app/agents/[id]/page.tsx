@@ -219,7 +219,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
+      <div className="profile-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <DailyTrackerGamification dailyPoints={dailyPoints} weeklyPoints={weeklyPoints} monthlyPoints={monthlyPoints} monthlyTarget={monthlyTarget} />
           
@@ -259,7 +259,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                 <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-3">
                 <div style={{ padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px' }}>
                   <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Tenure (1.5/mo)</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>{pointsFromTenure.toFixed(1)}</div>
@@ -498,7 +498,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                   <label className="label" htmlFor="clientName">Client Name (Optional)</label>
                   <input type="text" id="clientName" name="clientName" className="input" placeholder="John Doe" />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                <div className="form-grid-3">
                   <div>
                     <label className="label" htmlFor="salesPrice">Sales Price ($)</label>
                     <input type="number" id="salesPrice" name="salesPrice" className="input" step="0.01" placeholder="250000" />

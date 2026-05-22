@@ -40,7 +40,7 @@ export default async function GciLedger() {
         <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Track and log Gross Commission Income for all Team Agents.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '2rem' }}>
+      <div className="sidebar-left-grid">
         <div>
           <div className="card">
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Log Monthly GCI</h2>
