@@ -277,9 +277,11 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
               <div style={{ marginTop: '2rem' }}>
                 <PointsBreakdownChart tenure={pointsFromTenure} databank={pointsFromDatabank} soi={pointsFromSoi} />
               </div>
-
-              <ProspectTracker agentId={agent.id} currentPoints={totalPoints} prospects={agent.prospects} />
             </div>
+          )}
+
+          {(isShowingPartner || isEmpireBuilder) && (
+            <ProspectTracker agentId={agent.id} currentPoints={totalPoints} prospects={agent.prospects} />
           )}
 
           {isEmpireBuilder && (

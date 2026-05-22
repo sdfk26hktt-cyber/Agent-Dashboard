@@ -108,7 +108,9 @@ model Prospect {
   clientName          String
   address             String
   type                String   // DATABANK or SOI
-  estimatedSalesPrice Float?
+  estimatedSalesPrice  Float?
+  commissionPercentage Float?
+  referralPercentage   Float?   @default(0)
   
   agentId             String
   agent               Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)

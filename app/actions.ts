@@ -267,6 +267,8 @@ export async function addProspect(agentId: string, data: FormData) {
   const address = data.get('address') as string;
   const type = data.get('type') as string;
   const estimatedSalesPrice = data.get('estimatedSalesPrice') ? parseFloat(data.get('estimatedSalesPrice') as string) : null;
+  const commissionPercentage = data.get('commissionPercentage') ? parseFloat(data.get('commissionPercentage') as string) : null;
+  const referralPercentage = data.get('referralPercentage') ? parseFloat(data.get('referralPercentage') as string) : 0;
 
   await prisma.prospect.create({
     data: {
@@ -274,6 +276,8 @@ export async function addProspect(agentId: string, data: FormData) {
       address,
       type,
       estimatedSalesPrice,
+      commissionPercentage,
+      referralPercentage,
       agentId
     }
   });
