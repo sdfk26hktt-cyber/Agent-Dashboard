@@ -17,7 +17,7 @@ export default async function Dashboard() {
   }
 
   const teamAgents = await prisma.agent.findMany({
-    where: { role: { in: ['TEAM_AGENT', 'EMPIRE_BUILDER'] } },
+    where: { role: 'TEAM_AGENT' },
     include: {
       showingPartners: {
         include: {

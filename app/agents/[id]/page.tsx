@@ -62,11 +62,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
         }
       },
       dailyTrackers: {
-        where: {
-          date: {
-            gte: currentMonthStart
-          }
-        }
+        orderBy: { date: 'desc' }
       }
     }
   })
@@ -173,11 +169,15 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   }
   const monthlyTarget = weekdaysInMonth * 61;
 
+  const currentMonthStartLocal = new Date(now.getFullYear(), now.getMonth(), 1);
+
   for (const dt of agent.dailyTrackers) {
     const dtDate = new Date(dt.date);
     const dtDateStart = new Date(dtDate.getFullYear(), dtDate.getMonth(), dtDate.getDate());
     
-    monthlyPoints += dt.totalPoints;
+    if (dtDateStart >= currentMonthStartLocal) {
+      monthlyPoints += dt.totalPoints;
+    }
     
     if (dtDateStart >= weekStart) {
       weeklyPoints += dt.totalPoints;
@@ -446,6 +446,31 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                       {isAdmin && (
                         <AdminDealActions deal={deal} />
                       )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="card" style={{ marginTop: '2rem' }}>
+              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Daily Activities History</h2>
+              {agent.dailyTrackers.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)' }}>No daily trackers saved yet.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {agent.dailyTrackers.map(tracker => (
+                    <div key={tracker.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      <div>
+                        <div style={{ fontWeight: 500 }}>
+                          {new Date(tracker.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                          {tracker.totalPoints} points • {tracker.dials} dials
+                        </div>
+                      </div>
+                      <Link href={`/daily-tracker/${tracker.id}`} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}>
+                        View Sheet
+                      </Link>
                     </div>
                   ))}
                 </div>

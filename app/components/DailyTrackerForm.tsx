@@ -26,8 +26,8 @@ const TIME_BLOCKS = [
   '4:30 PM', '5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM'
 ]
 
-export default function DailyTrackerForm({ agentId, agentName, initialData }: { agentId: string, agentName: string, initialData?: any }) {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+export default function DailyTrackerForm({ agentId, agentName, initialData, readOnly }: { agentId: string, agentName: string, initialData?: any, readOnly?: boolean }) {
+  const [date, setDate] = useState(initialData?.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0])
   const [dials, setDials] = useState<number>(initialData?.dials || 0)
   
   const [pointsData, setPointsData] = useState<Record<string, number>>(initialData?.pointsData || {})
@@ -93,13 +93,15 @@ export default function DailyTrackerForm({ agentId, agentName, initialData }: { 
         totalPoints,
         schedule,
         prospecting,
-        notes
+        notes,
+        date: new Date(date)
       })
       alert('Tracker saved successfully!')
     } catch (e) {
       alert('Failed to save tracker.')
+    } finally {
+      setIsSaving(false)
     }
-    setIsSaving(false)
   }
 
   const handleExportPDF = async () => {
@@ -135,12 +137,15 @@ export default function DailyTrackerForm({ agentId, agentName, initialData }: { 
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '4rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginBottom: '2rem' }}>
-        <button onClick={handleClear} className="btn" style={{ backgroundColor: 'var(--danger)', color: 'white' }}>Clear Form</button>
-        <button onClick={handleSave} className="btn btn-secondary" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Form'}</button>
-        <button onClick={handleExportPDF} className="btn">Email/Export PDF</button>
-      </div>
+      {!readOnly && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginBottom: '2rem' }}>
+          <button onClick={handleClear} className="btn" style={{ backgroundColor: 'var(--danger)', color: 'white' }}>Clear Form</button>
+          <button onClick={handleSave} className="btn btn-secondary" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Form'}</button>
+          <button onClick={handleExportPDF} className="btn">Email/Export PDF</button>
+        </div>
+      )}
 
+      <fieldset disabled={readOnly} style={{ border: 'none', padding: 0, margin: 0 }}>
       <div ref={formRef} style={{ backgroundColor: 'white', color: 'black', padding: '3rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '2rem' }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Daily Success Habits Tracker</h1>
@@ -308,6 +313,7 @@ export default function DailyTrackerForm({ agentId, agentName, initialData }: { 
           />
         </div>
       </div>
+      </fieldset>
     </div>
   )
 }
