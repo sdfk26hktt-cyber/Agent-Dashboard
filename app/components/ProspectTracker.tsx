@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { addProspect, deleteProspect, convertProspectToDeal } from '@/app/actions'
+import { addProspect, deleteProspect, convertProspectToDeal, editProspect } from '@/app/actions'
 
 type Prospect = {
   id: string;
@@ -16,6 +16,7 @@ type Prospect = {
 
 export default function ProspectTracker({ agentId, currentPoints, prospects }: { agentId: string, currentPoints: number, prospects: Prospect[] }) {
   const [isAdding, setIsAdding] = useState(false)
+  const [editingProspectId, setEditingProspectId] = useState<string | null>(null)
 
   const databankProspects = prospects.filter(p => p.type === 'DATABANK').length
   const soiProspects = prospects.filter(p => p.type === 'SOI').length
@@ -37,6 +38,11 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
   const handleAddProspect = async (formData: FormData) => {
     await addProspect(agentId, formData)
     setIsAdding(false)
+  }
+
+  const handleEditProspect = async (prospectId: string, formData: FormData) => {
+    await editProspect(prospectId, agentId, formData)
+    setEditingProspectId(null)
   }
 
   return (
@@ -150,6 +156,54 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
                     netComm = comm - ref;
                   }
 
+                  if (editingProspectId === p.id) {
+                    return (
+                      <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td colSpan={5} style={{ padding: '0' }}>
+                          <form action={(formData) => handleEditProspect(p.id, formData)} style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', backgroundColor: '#f8fafc' }}>
+                            <div className="form-grid-2">
+                              <div>
+                                <label className="label" style={{ fontSize: '0.75rem' }}>Client Name</label>
+                                <input type="text" name="clientName" className="input" required defaultValue={p.clientName} />
+                              </div>
+                              <div>
+                                <label className="label" style={{ fontSize: '0.75rem' }}>Property Address</label>
+                                <input type="text" name="address" className="input" required defaultValue={p.address} />
+                              </div>
+                            </div>
+                            <div className="form-grid-3">
+                              <div>
+                                <label className="label" style={{ fontSize: '0.75rem' }}>Type</label>
+                                <select name="type" className="input" required defaultValue={p.type}>
+                                  <option value="DATABANK">Databank (1.2 pts)</option>
+                                  <option value="SOI">Sphere of Influence (2.4 pts)</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="label" style={{ fontSize: '0.75rem' }}>Est. Sales Price ($)</label>
+                                <input type="number" name="estimatedSalesPrice" className="input" step="0.01" defaultValue={p.estimatedSalesPrice || ''} />
+                              </div>
+                              <div>
+                                <label className="label" style={{ fontSize: '0.75rem' }}>Commission %</label>
+                                <input type="number" name="commissionPercentage" className="input" step="0.01" defaultValue={p.commissionPercentage || ''} />
+                              </div>
+                            </div>
+                            <div className="form-grid-2">
+                              <div>
+                                <label className="label" style={{ fontSize: '0.75rem' }}>Referral % (Optional)</label>
+                                <input type="number" name="referralPercentage" className="input" step="0.01" defaultValue={p.referralPercentage || ''} />
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'flex-end' }}>
+                                <button type="button" onClick={() => setEditingProspectId(null)} className="btn btn-secondary">Cancel</button>
+                                <button type="submit" className="btn">Update Prospect</button>
+                              </div>
+                            </div>
+                          </form>
+                        </td>
+                      </tr>
+                    )
+                  }
+
                   return (
                     <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '0.75rem', color: '#1e293b', fontWeight: 500 }}>{p.clientName}</td>
@@ -164,6 +218,7 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
                       </td>
                       <td style={{ padding: '0.75rem', textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <button onClick={() => setEditingProspectId(p.id)} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>Edit</button>
                           <button onClick={() => convertProspectToDeal(p.id, agentId)} className="btn" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', backgroundColor: '#10b981' }}>Convert to Deal</button>
                           <button onClick={() => deleteProspect(p.id, agentId)} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#ef4444', borderColor: '#ef4444' }}>Delete</button>
                         </div>
