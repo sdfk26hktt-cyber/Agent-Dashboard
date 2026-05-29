@@ -20,22 +20,31 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
 
   const [projectedDatabank, setProjectedDatabank] = useState<number | ''>('')
   const [projectedSoi, setProjectedSoi] = useState<number | ''>('')
-  const [projectedMonths, setProjectedMonths] = useState<number | ''>('')
+  const [targetDate, setTargetDate] = useState<string>('')
 
   const databankProspects = prospects.filter(p => p.type === 'DATABANK').length
   const soiProspects = prospects.filter(p => p.type === 'SOI').length
 
   const databankPoints = databankProspects * 1.2
   const soiPoints = soiProspects * 2.4
+  const estimatedTotal = currentPoints + databankPoints + soiPoints
+  const threshold = 25
+  const isGraduating = estimatedTotal >= threshold
   
   const projectedDatabankPoints = (Number(projectedDatabank) || 0) * 1.2
   const projectedSoiPoints = (Number(projectedSoi) || 0) * 2.4
-  const projectedTenurePoints = (Number(projectedMonths) || 0) * 1.5
+  let projectedTenurePoints = 0
+  if (targetDate) {
+    const today = new Date().getTime();
+    const target = new Date(targetDate).getTime();
+    if (target > today) {
+      const futureMonths = (target - today) / (1000 * 60 * 60 * 24 * 30);
+      projectedTenurePoints = futureMonths * 1.5;
+    }
+  }
 
-  const estimatedTotal = currentPoints + databankPoints + soiPoints + projectedDatabankPoints + projectedSoiPoints + projectedTenurePoints
-  
-  const threshold = 25
-  const isGraduating = estimatedTotal >= threshold
+  const projectedTotal = currentPoints + projectedDatabankPoints + projectedSoiPoints + projectedTenurePoints
+  const isProjectedGraduating = projectedTotal >= threshold
 
   const totalNetCommission = prospects.reduce((sum, p) => {
     if (!p.estimatedSalesPrice || !p.commissionPercentage) return sum;
@@ -92,7 +101,15 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
 
       {/* What-If Estimator */}
       <div style={{ padding: '1.25rem', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '1.5rem' }}>
-        <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '1rem' }}>Future Projection Estimator</h4>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155', margin: 0 }}>Future Projection Estimator</h4>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Projected Total Points</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: isProjectedGraduating ? '#10b981' : '#3b82f6' }}>
+              {projectedTotal.toFixed(1)} <span style={{ fontSize: '0.875rem', color: '#94a3b8', fontWeight: 500 }}>/ {threshold}</span>
+            </div>
+          </div>
+        </div>
         <div className="form-grid-3">
           <div>
             <label className="label" style={{ fontSize: '0.75rem' }}>Addtl. Databank Deals (+1.2 pts)</label>
@@ -103,8 +120,9 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
             <input type="number" min="0" className="input" placeholder="0" value={projectedSoi} onChange={e => setProjectedSoi(e.target.value === '' ? '' : Number(e.target.value))} />
           </div>
           <div>
-            <label className="label" style={{ fontSize: '0.75rem' }}>Future Time Served (Months)</label>
-            <input type="number" min="0" className="input" placeholder="0" value={projectedMonths} onChange={e => setProjectedMonths(e.target.value === '' ? '' : Number(e.target.value))} />
+            <label className="label" style={{ fontSize: '0.75rem' }}>Target Graduation Date</label>
+            <input type="date" className="input" value={targetDate} onChange={e => setTargetDate(e.target.value)} />
+            {projectedTenurePoints > 0 && <div style={{ fontSize: '0.75rem', color: '#10b981', marginTop: '0.25rem' }}>+{projectedTenurePoints.toFixed(1)} tenure points by this date</div>}
           </div>
         </div>
       </div>
