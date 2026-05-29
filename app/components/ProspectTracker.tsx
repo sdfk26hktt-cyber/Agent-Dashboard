@@ -18,12 +18,21 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
   const [isAdding, setIsAdding] = useState(false)
   const [editingProspectId, setEditingProspectId] = useState<string | null>(null)
 
+  const [projectedDatabank, setProjectedDatabank] = useState<number | ''>('')
+  const [projectedSoi, setProjectedSoi] = useState<number | ''>('')
+  const [projectedMonths, setProjectedMonths] = useState<number | ''>('')
+
   const databankProspects = prospects.filter(p => p.type === 'DATABANK').length
   const soiProspects = prospects.filter(p => p.type === 'SOI').length
 
   const databankPoints = databankProspects * 1.2
   const soiPoints = soiProspects * 2.4
-  const estimatedTotal = currentPoints + databankPoints + soiPoints
+  
+  const projectedDatabankPoints = (Number(projectedDatabank) || 0) * 1.2
+  const projectedSoiPoints = (Number(projectedSoi) || 0) * 2.4
+  const projectedTenurePoints = (Number(projectedMonths) || 0) * 1.5
+
+  const estimatedTotal = currentPoints + databankPoints + soiPoints + projectedDatabankPoints + projectedSoiPoints + projectedTenurePoints
   
   const threshold = 25
   const isGraduating = estimatedTotal >= threshold
@@ -78,6 +87,25 @@ export default function ProspectTracker({ agentId, currentPoints, prospects }: {
           {isGraduating && (
             <div style={{ fontSize: '0.875rem', color: '#10b981', fontWeight: 600, marginTop: '0.25rem' }}>🎉 Threshold Met!</div>
           )}
+        </div>
+      </div>
+
+      {/* What-If Estimator */}
+      <div style={{ padding: '1.25rem', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '1.5rem' }}>
+        <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '1rem' }}>Future Projection Estimator</h4>
+        <div className="form-grid-3">
+          <div>
+            <label className="label" style={{ fontSize: '0.75rem' }}>Addtl. Databank Deals (+1.2 pts)</label>
+            <input type="number" min="0" className="input" placeholder="0" value={projectedDatabank} onChange={e => setProjectedDatabank(e.target.value === '' ? '' : Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="label" style={{ fontSize: '0.75rem' }}>Addtl. SOI Deals (+2.4 pts)</label>
+            <input type="number" min="0" className="input" placeholder="0" value={projectedSoi} onChange={e => setProjectedSoi(e.target.value === '' ? '' : Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="label" style={{ fontSize: '0.75rem' }}>Future Time Served (Months)</label>
+            <input type="number" min="0" className="input" placeholder="0" value={projectedMonths} onChange={e => setProjectedMonths(e.target.value === '' ? '' : Number(e.target.value))} />
+          </div>
         </div>
       </div>
 
