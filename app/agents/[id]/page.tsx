@@ -520,6 +520,9 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                 </div>
                 <button type="submit" className="btn" style={{ marginTop: '0.5rem' }}>Save Deal</button>
               </form>
+              <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+                <img src="/deal-layer.png" alt="Deal Layer" style={{ maxWidth: '100%', borderRadius: '8px' }} />
+              </div>
             </div>
           )}
 
