@@ -109,12 +109,64 @@ export default async function Dashboard() {
             <Link href="/agents/new" className="btn btn-secondary">Create your first Team Agent</Link>
           </div>
         ) : (
-          teamAgents.map(agent => {
-            const currentShowingPartners = agent.showingPartners.filter(sp => sp.role === 'SHOWING_PARTNER');
-            const currentEmpireBuilders = agent.showingPartners.filter(sp => sp.role === 'EMPIRE_BUILDER');
+          (() => {
+            const teamAgentsWithGci = teamAgents.map(agent => {
+              let currentMonthNetGci = 0;
+              
+              for (const sp of agent.showingPartners) {
+                for (const d of sp.deals) {
+                  const dealDate = new Date(d.dateClosed);
+                  if (dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear) {
+                    if (d.salesPrice && d.commissionPercentage) {
+                      const gross = d.salesPrice * (d.commissionPercentage / 100);
+                      const net = gross * (1 - ((d.referralPercentage || 0) / 100));
+                      currentMonthNetGci += net;
+                    }
+                  }
+                }
+              }
 
-            return (
-              <div key={agent.id} className="card">
+              const currentShowingPartners = agent.showingPartners.filter(sp => sp.role === 'SHOWING_PARTNER').map(sp => {
+                const monthsServed = Math.max(0, (new Date().getTime() - new Date(sp.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30));
+                const databankDeals = sp.deals.filter(d => d.type === 'DATABANK').length;
+                const soiDeals = sp.deals.filter(d => d.type === 'SOI').length;
+                const points = (monthsServed * 1.5) + (databankDeals * 1.2) + (soiDeals * 2.4);
+                
+                let totalNetGci = 0;
+                for (const d of sp.deals) {
+                  if (d.salesPrice && d.commissionPercentage) {
+                    const gross = d.salesPrice * (d.commissionPercentage / 100);
+                    const net = gross * (1 - ((d.referralPercentage || 0) / 100));
+                    totalNetGci += net;
+                  }
+                }
+
+                return { ...sp, points, totalNetGci };
+              }).sort((a, b) => b.points - a.points);
+
+              const currentEmpireBuilders = agent.showingPartners.filter(sp => sp.role === 'EMPIRE_BUILDER').map(eb => {
+                let ebCurrentMonthNetGci = 0;
+                for (const d of eb.deals) {
+                  const dealDate = new Date(d.dateClosed);
+                  if (dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear) {
+                    if (d.salesPrice && d.commissionPercentage) {
+                      const gross = d.salesPrice * (d.commissionPercentage / 100);
+                      const net = gross * (1 - ((d.referralPercentage || 0) / 100));
+                      ebCurrentMonthNetGci += net;
+                    }
+                  }
+                }
+                return { ...eb, currentMonthNetGci: ebCurrentMonthNetGci };
+              }).sort((a, b) => b.currentMonthNetGci - a.currentMonthNetGci);
+
+              return { ...agent, currentMonthNetGci, currentShowingPartners, currentEmpireBuilders };
+            }).sort((a, b) => b.currentMonthNetGci - a.currentMonthNetGci);
+
+            return teamAgentsWithGci.map(agent => {
+              const { currentShowingPartners, currentEmpireBuilders } = agent;
+
+              return (
+                <div key={agent.id} className="card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                   <div>
                     <Link href={`/agents/${agent.id}`}>
@@ -135,22 +187,7 @@ export default async function Dashboard() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                     {currentShowingPartners.map(sp => {
-                      // Calculate basic points for display
-                      const monthsServed = Math.max(0, (new Date().getTime() - new Date(sp.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30));
-                      const databankDeals = sp.deals.filter(d => d.type === 'DATABANK').length;
-                      const soiDeals = sp.deals.filter(d => d.type === 'SOI').length;
-                      
-                      const points = (monthsServed * 1.5) + (databankDeals * 1.2) + (soiDeals * 2.4);
-                      const progress = Math.min(100, (points / 25) * 100);
-                      // Calculate Net GCI (Gross Commission Less Referrals)
-                      let totalNetGci = 0;
-                      for (const d of sp.deals) {
-                        if (d.salesPrice && d.commissionPercentage) {
-                          const gross = d.salesPrice * (d.commissionPercentage / 100);
-                          const net = gross * (1 - ((d.referralPercentage || 0) / 100));
-                          totalNetGci += net;
-                        }
-                      }
+                      const progress = Math.min(100, (sp.points / 25) * 100);
 
                       return (
                         <Link href={`/agents/${sp.id}`} key={sp.id} style={{ display: 'block', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)', transition: 'border-color 0.2s ease' }}>
@@ -158,10 +195,10 @@ export default async function Dashboard() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <strong>{sp.name}</strong>
                               <span className="badge" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#059669', fontSize: '0.7rem', padding: '0.1rem 0.4rem' }}>
-                                ${totalNetGci.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Net GCI
+                                ${sp.totalNetGci.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Net GCI
                               </span>
                             </div>
-                            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{points.toFixed(1)} / 25 pts</span>
+                            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{sp.points.toFixed(1)} / 25 pts</span>
                           </div>
                           <div className="progress-bar-container">
                             <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
@@ -177,19 +214,7 @@ export default async function Dashboard() {
                     <h3 className="label" style={{ marginTop: '1.5rem' }}>Empire Builders ({currentEmpireBuilders.length})</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                       {currentEmpireBuilders.map(eb => {
-                        let currentMonthNetGci = 0;
-                        for (const d of eb.deals) {
-                          const dealDate = new Date(d.dateClosed);
-                          if (dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear) {
-                            if (d.salesPrice && d.commissionPercentage) {
-                              const gross = d.salesPrice * (d.commissionPercentage / 100);
-                              const net = gross * (1 - ((d.referralPercentage || 0) / 100));
-                              currentMonthNetGci += net;
-                            }
-                          }
-                        }
-                        
-                        const progress = Math.min(100, (currentMonthNetGci / 28000) * 100);
+                        const progress = Math.min(100, (eb.currentMonthNetGci / 28000) * 100);
 
                         return (
                           <Link href={`/agents/${eb.id}`} key={eb.id} style={{ display: 'block', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)', transition: 'border-color 0.2s ease' }}>
@@ -197,7 +222,7 @@ export default async function Dashboard() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <strong>{eb.name}</strong>
                               </div>
-                              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>${currentMonthNetGci.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} / $28,000 Bonus</span>
+                              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>${eb.currentMonthNetGci.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} / $28,000 Bonus</span>
                             </div>
                             <div className="progress-bar-container">
                               <div className="progress-bar-fill" style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #f87171, #ef4444)' }}></div>
@@ -210,7 +235,7 @@ export default async function Dashboard() {
                 )}
               </div>
             )
-          })
+          })})()
         )}
       </div>
     </div>
