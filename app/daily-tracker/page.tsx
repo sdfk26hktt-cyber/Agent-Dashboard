@@ -7,7 +7,11 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-export default async function DailyTrackerPage() {
+export default async function DailyTrackerPage({
+  searchParams,
+}: {
+  searchParams: { date?: string };
+}) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
 
@@ -17,18 +21,26 @@ export default async function DailyTrackerPage() {
 
   if (!agent) redirect('/login')
 
-  // Find if they already started a tracker today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  let targetDate = new Date();
+  if (searchParams.date) {
+    const [year, month, day] = searchParams.date.split('-').map(Number);
+    targetDate = new Date(year, month - 1, day);
+  } else {
+    // Correct for local timezone if no date provided
+    targetDate = new Date(new Date().toLocaleDateString('en-US'));
+  }
+  
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1);
 
   const existingTracker = await prisma.dailyTracker.findFirst({
     where: {
       agentId: agent.id,
       date: {
-        gte: today,
-        lt: tomorrow
+        gte: startOfDay,
+        lt: endOfDay
       }
     }
   });
@@ -49,6 +61,7 @@ export default async function DailyTrackerPage() {
           prospecting: existingTracker.prospecting,
           notes: existingTracker.notes
         } : undefined}
+        targetDate={searchParams.date || new Date().toLocaleDateString('en-CA')} // YYYY-MM-DD
       />
     </div>
   )

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { saveDailyTracker } from '@/app/actions'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
@@ -26,8 +27,9 @@ const TIME_BLOCKS = [
   '4:30 PM', '5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM'
 ]
 
-export default function DailyTrackerForm({ agentId, agentName, initialData, readOnly }: { agentId: string, agentName: string, initialData?: any, readOnly?: boolean }) {
-  const [date, setDate] = useState(initialData?.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0])
+export default function DailyTrackerForm({ agentId, agentName, initialData, readOnly, targetDate }: { agentId: string, agentName: string, initialData?: any, readOnly?: boolean, targetDate?: string }) {
+  const router = useRouter()
+  const [date, setDate] = useState(targetDate || new Date().toISOString().split('T')[0])
   const [dials, setDials] = useState<number>(initialData?.dials || 0)
   
   const [pointsData, setPointsData] = useState<Record<string, number>>(initialData?.pointsData || {})
@@ -41,6 +43,30 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
   
   const [isSaving, setIsSaving] = useState(false)
   const formRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (initialData) {
+      setDials(initialData.dials || 0)
+      setPointsData(initialData.pointsData || {})
+      setSchedule(initialData.schedule || {})
+      setProspecting(initialData.prospecting || {
+        session1: { start: '', end: '', min: '' },
+        session2: { start: '', end: '', min: '' },
+        overall: { min: '', contacts: '', listingApts: '', apts: '', lenderApts: '' }
+      })
+      setNotes(initialData.notes || '')
+    } else {
+      setDials(0)
+      setPointsData({})
+      setSchedule({})
+      setProspecting({
+        session1: { start: '', end: '', min: '' },
+        session2: { start: '', end: '', min: '' },
+        overall: { min: '', contacts: '', listingApts: '', apts: '', lenderApts: '' }
+      })
+      setNotes('')
+    }
+  }, [initialData])
 
   const handlePointChange = (id: string, value: string) => {
     const num = parseInt(value, 10)
@@ -94,8 +120,7 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
         schedule,
         prospecting,
         notes,
-        date: new Date(date)
-      })
+      }, date)
       alert('Tracker saved successfully!')
     } catch (e) {
       alert('Failed to save tracker.')
@@ -158,7 +183,10 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>Date</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ fontSize: '1.25rem', fontWeight: 700, border: 'none', borderBottom: '1px solid black', padding: '0.25rem', outline: 'none', fontFamily: 'inherit', color: 'black' }} />
+              <input type="date" value={date} onChange={(e) => {
+                setDate(e.target.value);
+                router.push(`?date=${e.target.value}`);
+              }} style={{ fontSize: '1.25rem', fontWeight: 700, border: 'none', borderBottom: '1px solid black', padding: '0.25rem', outline: 'none', fontFamily: 'inherit', color: 'black' }} />
             </div>
           </div>
         </div>

@@ -215,19 +215,26 @@ export async function updatePassword(agentId: string, data: FormData) {
   revalidatePath(`/agents/${agentId}`)
 }
 
-export async function saveDailyTracker(agentId: string, data: any) {
-  // Try to find if there's already a tracker for today for this agent
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+export async function saveDailyTracker(agentId: string, data: any, targetDateString?: string) {
+  // Try to find if there's already a tracker for the given date for this agent
+  let targetDate = new Date();
+  if (targetDateString) {
+    // Parse YYYY-MM-DD
+    const [year, month, day] = targetDateString.split('-').map(Number);
+    targetDate = new Date(year, month - 1, day);
+  }
+  
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1);
 
   const existingTracker = await prisma.dailyTracker.findFirst({
     where: {
       agentId,
       date: {
-        gte: today,
-        lt: tomorrow
+        gte: startOfDay,
+        lt: endOfDay
       }
     }
   });
@@ -248,7 +255,7 @@ export async function saveDailyTracker(agentId: string, data: any) {
     await prisma.dailyTracker.create({
       data: {
         agentId,
-        date: new Date(),
+        date: startOfDay,
         dials: data.dials,
         pointsData: data.pointsData,
         totalPoints: data.totalPoints,
