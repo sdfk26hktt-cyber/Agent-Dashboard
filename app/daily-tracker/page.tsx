@@ -21,14 +21,10 @@ export default async function DailyTrackerPage({
 
   if (!agent) redirect('/login')
 
-  let targetDate = new Date();
-  if (searchParams.date) {
-    const [year, month, day] = searchParams.date.split('-').map(Number);
-    targetDate = new Date(year, month - 1, day);
-  } else {
-    // Correct for local timezone if no date provided
-    targetDate = new Date(new Date().toLocaleDateString('en-US'));
-  }
+  const mtDateString = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
+  const targetDateString = searchParams.date || mtDateString;
+  const [year, month, day] = targetDateString.split('-').map(Number);
+  const targetDate = new Date(year, month - 1, day);
   
   const startOfDay = new Date(targetDate);
   startOfDay.setHours(0, 0, 0, 0);
@@ -61,7 +57,7 @@ export default async function DailyTrackerPage({
           prospecting: existingTracker.prospecting,
           notes: existingTracker.notes
         } : undefined}
-        targetDate={searchParams.date || new Date().toLocaleDateString('en-CA')} // YYYY-MM-DD
+        targetDate={targetDateString} // YYYY-MM-DD
       />
     </div>
   )

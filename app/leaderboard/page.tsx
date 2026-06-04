@@ -24,9 +24,9 @@ export default async function LeaderboardPage() {
   const showingPartners = allAgents.filter(a => a.role === 'SHOWING_PARTNER' || a.role === 'EMPIRE_BUILDER');
   const teamAgents = allAgents.filter(a => a.role === 'TEAM_AGENT');
 
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
+  const mtDateString = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
+  const [currentYear, currentMonthIndex] = mtDateString.split('-').map(Number);
+  const currentMonth = currentMonthIndex - 1;
 
   const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
   const lastMonth = lastMonthDate.getMonth();
@@ -37,26 +37,26 @@ export default async function LeaderboardPage() {
 
   // 1. Top SP by Sold Volume
   const getVolume = (sp: any, filterFn: (d: Date) => boolean) => sp.deals.filter((d: any) => filterFn(new Date(d.dateClosed))).reduce((sum: number, d: any) => sum + (d.salesPrice || 0), 0);
-  const spByVolumeCurrent = showingPartners.map(sp => ({ ...sp, value: getVolume(sp, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
-  const spByVolumeLast = showingPartners.map(sp => ({ ...sp, value: getVolume(sp, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
+  const spByVolumeCurrent = showingPartners.map(sp => ({ ...sp, value: getVolume(sp, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
+  const spByVolumeLast = showingPartners.map(sp => ({ ...sp, value: getVolume(sp, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
 
   // 2. Top SP by Gross Commission
   const getGc = (sp: any, filterFn: (d: Date) => boolean) => sp.deals.filter((d: any) => filterFn(new Date(d.dateClosed))).reduce((sum: number, d: any) => {
     if (!d.salesPrice || !d.commissionPercentage) return sum;
     return sum + (d.salesPrice * (d.commissionPercentage / 100));
   }, 0);
-  const spByGcCurrent = showingPartners.map(sp => ({ ...sp, value: getGc(sp, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
-  const spByGcLast = showingPartners.map(sp => ({ ...sp, value: getGc(sp, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
+  const spByGcCurrent = showingPartners.map(sp => ({ ...sp, value: getGc(sp, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
+  const spByGcLast = showingPartners.map(sp => ({ ...sp, value: getGc(sp, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
 
   // 3. Top SP by Closed Units
   const getUnits = (sp: any, filterFn: (d: Date) => boolean) => sp.deals.filter((d: any) => filterFn(new Date(d.dateClosed))).length;
-  const spByUnitsCurrent = showingPartners.map(sp => ({ ...sp, value: getUnits(sp, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
-  const spByUnitsLast = showingPartners.map(sp => ({ ...sp, value: getUnits(sp, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
+  const spByUnitsCurrent = showingPartners.map(sp => ({ ...sp, value: getUnits(sp, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
+  const spByUnitsLast = showingPartners.map(sp => ({ ...sp, value: getUnits(sp, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
 
   // 4. Top Overall by 61-point Daily Tracker
   const getTrackerPoints = (agent: any, filterFn: (d: Date) => boolean) => agent.dailyTrackers.filter((t: any) => filterFn(new Date(t.date))).reduce((sum: number, t: any) => sum + t.totalPoints, 0);
-  const overallByTrackerCurrent = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
-  const overallByTrackerLast = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
+  const overallByTrackerCurrent = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
+  const overallByTrackerLast = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
 
   // 5. Top Team Agent by Graduated SP GCI
   const getGradGci = (ta: any, filterFn: (d: Date) => boolean) => ta.gciEntries.filter((gci: any) => filterFn(new Date(gci.month))).reduce((sum: number, gci: any) => {
@@ -65,8 +65,8 @@ export default async function LeaderboardPage() {
     }
     return sum;
   }, 0);
-  const taByGradGciCurrent = teamAgents.map(ta => ({ ...ta, value: getGradGci(ta, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
-  const taByGradGciLast = teamAgents.map(ta => ({ ...ta, value: getGradGci(ta, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 5);
+  const taByGradGciCurrent = teamAgents.map(ta => ({ ...ta, value: getGradGci(ta, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
+  const taByGradGciLast = teamAgents.map(ta => ({ ...ta, value: getGradGci(ta, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
 
 
   const LeaderboardList = ({ data, format, title }: { data: any[], format: 'currency' | 'number' | 'points', title: string }) => (

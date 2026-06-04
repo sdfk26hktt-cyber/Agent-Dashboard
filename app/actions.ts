@@ -222,6 +222,10 @@ export async function saveDailyTracker(agentId: string, data: any, targetDateStr
     // Parse YYYY-MM-DD
     const [year, month, day] = targetDateString.split('-').map(Number);
     targetDate = new Date(year, month - 1, day);
+  } else {
+    const mtDateString = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
+    const [year, month, day] = mtDateString.split('-').map(Number);
+    targetDate = new Date(year, month - 1, day);
   }
   
   const startOfDay = new Date(targetDate);
