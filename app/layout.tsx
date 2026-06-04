@@ -7,7 +7,7 @@ import { authOptions } from "@/lib/auth"
 import LogoutButton from "@/app/components/LogoutButton"
 
 export const metadata: Metadata = {
-  title: 'eXp Syndicate Tracker',
+  title: 'BBHST Tracker',
   description: 'Track Showing Partners and Team Agents advancement points and costs.',
 }
 
@@ -26,7 +26,7 @@ export default async function RootLayout({
             <div className="header-content">
               <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Link href="/">
-                  <img src="/exp-syndicate-logo.png" alt="eXp Syndicate Logo" style={{ height: '40px', width: 'auto', display: 'block' }} />
+                  <img src="/bbhst-logo.png" alt="BBHST Logo" style={{ height: '40px', width: 'auto', display: 'block' }} />
                 </Link>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>v4.0</span>
               </div>

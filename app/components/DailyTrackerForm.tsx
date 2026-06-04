@@ -174,7 +174,7 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
       <div ref={formRef} style={{ backgroundColor: 'white', color: 'black', padding: '3rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '2rem' }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Daily Success Habits Tracker</h1>
-          <p style={{ color: '#6b7280', fontSize: '1.25rem' }}>eXp Syndicate Tracker</p>
+          <p style={{ color: '#6b7280', fontSize: '1.25rem' }}>BBHST Tracker System</p>
           
           <div style={{ display: 'flex', justifyContent: 'center', gap: '4rem', marginTop: '2rem' }}>
             <div>
