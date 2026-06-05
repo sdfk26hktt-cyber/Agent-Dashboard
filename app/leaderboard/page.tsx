@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { redirect } from 'next/navigation'
+import ExpandableLeaderboard from '@/app/components/ExpandableLeaderboard'
 export const dynamic = 'force-dynamic'
 
 export default async function LeaderboardPage() {
@@ -30,10 +31,11 @@ export default async function LeaderboardPage() {
     month: 'numeric'
   }).formatToParts(new Date());
   
-  let currentYear = 0, currentMonthIndex = 0;
+  let currentYear = 0, currentMonthIndex = 0, currentDayNum = 0;
   for (const part of parts) {
     if (part.type === 'year') currentYear = parseInt(part.value, 10);
     if (part.type === 'month') currentMonthIndex = parseInt(part.value, 10);
+    if (part.type === 'day') currentDayNum = parseInt(part.value, 10);
   }
   const currentMonth = currentMonthIndex - 1;
 
@@ -43,6 +45,7 @@ export default async function LeaderboardPage() {
 
   const isCurrentMonth = (date: Date) => date.getMonth() === currentMonth && date.getFullYear() === currentYear;
   const isLastMonth = (date: Date) => date.getMonth() === lastMonth && date.getFullYear() === lastYear;
+  const isToday = (date: Date) => date.getFullYear() === currentYear && date.getMonth() === currentMonth && date.getDate() === currentDayNum;
 
   // 1. Top SP by Sold Volume
   const getVolume = (sp: any, filterFn: (d: Date) => boolean) => sp.deals.filter((d: any) => filterFn(new Date(d.dateClosed))).reduce((sum: number, d: any) => sum + (d.salesPrice || 0), 0);
@@ -66,6 +69,9 @@ export default async function LeaderboardPage() {
   const getTrackerPoints = (agent: any, filterFn: (d: Date) => boolean) => agent.dailyTrackers.filter((t: any) => filterFn(new Date(t.date))).reduce((sum: number, t: any) => sum + t.totalPoints, 0);
   const overallByTrackerCurrent = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
   const overallByTrackerLast = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
+  
+  // 5. Daily Leaderboard (Today)
+  const overallByTrackerToday = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isToday) })).sort((a, b) => b.value - a.value);
 
   // 5. Top Team Agent by Graduated SP GCI
   const getGradGci = (ta: any, filterFn: (d: Date) => boolean) => ta.gciEntries.filter((gci: any) => filterFn(new Date(gci.month))).reduce((sum: number, gci: any) => {
@@ -157,13 +163,28 @@ export default async function LeaderboardPage() {
           lastData={spByUnitsLast} 
           format="number" 
         />
-        <LeaderboardCategory 
-          title="Top Overall by 61-Point Tracker" 
-          icon="🎯" 
-          currentData={overallByTrackerCurrent} 
-          lastData={overallByTrackerLast} 
-          format="points" 
-        />
+        <div className="card" style={{ padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <span style={{ fontSize: '1.5rem' }}>🎯</span>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>Top Overall by 61-Point Tracker</h2>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              <ExpandableLeaderboard 
+                title="Today" 
+                data={overallByTrackerToday} 
+                valueFormatter={(val) => `${val} pts`}
+              />
+            </div>
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              <LeaderboardList title="Current Month" data={overallByTrackerCurrent} format="points" />
+            </div>
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              <LeaderboardList title="Last Month" data={overallByTrackerLast} format="points" />
+            </div>
+          </div>
+        </div>
         <LeaderboardCategory 
           title="Top Team Agent by Graduated SP GCI" 
           icon="🎓" 
