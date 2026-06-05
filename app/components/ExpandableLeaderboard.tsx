@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-export default function ExpandableLeaderboard({ title, data, valueFormatter }: { title: string, data: any[], valueFormatter?: (val: number) => string }) {
+export default function ExpandableLeaderboard({ title, data, format }: { title: string, data: any[], format?: 'currency' | 'number' | 'points' }) {
   const [expanded, setExpanded] = useState(false);
   
   const displayData = expanded ? data : data.slice(0, 5);
@@ -34,7 +34,11 @@ export default function ExpandableLeaderboard({ title, data, valueFormatter }: {
               </Link>
             </div>
             <div style={{ fontWeight: 'bold', color: 'var(--accent-primary)' }}>
-              {valueFormatter ? valueFormatter(agent.value) : agent.value}
+              {format === 'currency' 
+                ? `$${Math.round(agent.value).toLocaleString()}` 
+                : format === 'points' 
+                  ? `${Math.round(agent.value)} pts`
+                  : agent.value.toLocaleString()}
             </div>
           </div>
         ))}

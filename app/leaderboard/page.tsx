@@ -174,7 +174,7 @@ export default async function LeaderboardPage() {
               <ExpandableLeaderboard 
                 title="Today" 
                 data={overallByTrackerToday} 
-                valueFormatter={(val) => `${val} pts`}
+                format="points"
               />
             </div>
             <div style={{ flex: 1, minWidth: '300px' }}>
