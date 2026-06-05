@@ -28,7 +28,8 @@ export default async function LeaderboardPage() {
   const parts = new Intl.DateTimeFormat('en-US', { 
     timeZone: 'America/Denver',
     year: 'numeric',
-    month: 'numeric'
+    month: 'numeric',
+    day: 'numeric'
   }).formatToParts(new Date());
   
   let currentYear = 0, currentMonthIndex = 0, currentDayNum = 0;
