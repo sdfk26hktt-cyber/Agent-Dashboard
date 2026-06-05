@@ -24,8 +24,17 @@ export default async function LeaderboardPage() {
   const showingPartners = allAgents.filter(a => a.role === 'SHOWING_PARTNER' || a.role === 'EMPIRE_BUILDER');
   const teamAgents = allAgents.filter(a => a.role === 'TEAM_AGENT');
 
-  const mtDateString = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
-  const [currentYear, currentMonthIndex] = mtDateString.split('-').map(Number);
+  const parts = new Intl.DateTimeFormat('en-US', { 
+    timeZone: 'America/Denver',
+    year: 'numeric',
+    month: 'numeric'
+  }).formatToParts(new Date());
+  
+  let currentYear = 0, currentMonthIndex = 0;
+  for (const part of parts) {
+    if (part.type === 'year') currentYear = parseInt(part.value, 10);
+    if (part.type === 'month') currentMonthIndex = parseInt(part.value, 10);
+  }
   const currentMonth = currentMonthIndex - 1;
 
   const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);

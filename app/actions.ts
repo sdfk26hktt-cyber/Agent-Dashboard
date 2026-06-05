@@ -223,8 +223,19 @@ export async function saveDailyTracker(agentId: string, data: any, targetDateStr
     const [year, month, day] = targetDateString.split('-').map(Number);
     targetDate = new Date(year, month - 1, day);
   } else {
-    const mtDateString = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
-    const [year, month, day] = mtDateString.split('-').map(Number);
+    const parts = new Intl.DateTimeFormat('en-US', { 
+      timeZone: 'America/Denver',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    }).formatToParts(new Date());
+    
+    let year = 0, month = 0, day = 0;
+    for (const part of parts) {
+      if (part.type === 'year') year = parseInt(part.value, 10);
+      if (part.type === 'month') month = parseInt(part.value, 10);
+      if (part.type === 'day') day = parseInt(part.value, 10);
+    }
     targetDate = new Date(year, month - 1, day);
   }
   

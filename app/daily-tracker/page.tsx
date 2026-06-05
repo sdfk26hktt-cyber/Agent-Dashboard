@@ -21,8 +21,21 @@ export default async function DailyTrackerPage({
 
   if (!agent) redirect('/login')
 
-  const mtDateString = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
-  const targetDateString = searchParams.date || mtDateString;
+  const parts = new Intl.DateTimeFormat('en-US', { 
+    timeZone: 'America/Denver',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  }).formatToParts(new Date());
+  
+  let currentYear = 0, currentMonthIndex = 0, currentDay = 0;
+  for (const part of parts) {
+    if (part.type === 'year') currentYear = parseInt(part.value, 10);
+    if (part.type === 'month') currentMonthIndex = parseInt(part.value, 10);
+    if (part.type === 'day') currentDay = parseInt(part.value, 10);
+  }
+  
+  const targetDateString = searchParams.date || `${currentYear}-${currentMonthIndex.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
   const [year, month, day] = targetDateString.split('-').map(Number);
   const targetDate = new Date(year, month - 1, day);
   
