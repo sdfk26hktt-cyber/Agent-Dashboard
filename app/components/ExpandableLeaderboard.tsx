@@ -29,7 +29,7 @@ export default function ExpandableLeaderboard({ title, data, format }: { title: 
               {index + 1}
             </div>
             <div style={{ flex: 1 }}>
-              <Link href={`/agents/${agent.id}`} style={{ fontWeight: '500', color: 'var(--text-primary)', textDecoration: 'none' }} className="hover-underline">
+              <Link href={`/agents/${agent.id}`} style={{ fontWeight: '500', color: '#1e293b', textDecoration: 'none' }} className="hover-underline">
                 {agent.name}
               </Link>
             </div>
@@ -43,7 +43,7 @@ export default function ExpandableLeaderboard({ title, data, format }: { title: 
           </div>
         ))}
         {data.length === 0 && (
-          <div style={{ color: 'var(--text-secondary)', textAlign: 'center', fontStyle: 'italic', padding: '1rem 0' }}>No data available</div>
+          <div style={{ color: '#64748b', textAlign: 'center', fontStyle: 'italic', padding: '1rem 0' }}>No data available</div>
         )}
       </div>
       {data.length > 5 && (
@@ -53,16 +53,16 @@ export default function ExpandableLeaderboard({ title, data, format }: { title: 
             marginTop: '1.5rem', 
             padding: '0.5rem', 
             width: '100%', 
-            backgroundColor: 'var(--bg-secondary)', 
+            backgroundColor: '#f1f5f9', 
             border: 'none', 
             borderRadius: '4px', 
-            color: 'var(--text-primary)', 
+            color: '#1e293b', 
             cursor: 'pointer',
             fontWeight: '500',
             transition: 'background-color 0.2s'
           }}
           onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
         >
           {expanded ? 'Show Top 5 Only' : `Show All ${data.length} Agents`}
         </button>

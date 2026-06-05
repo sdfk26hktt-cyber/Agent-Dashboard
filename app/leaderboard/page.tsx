@@ -43,9 +43,9 @@ export default async function LeaderboardPage() {
   const lastMonth = lastMonthDate.getMonth();
   const lastYear = lastMonthDate.getFullYear();
 
-  const isCurrentMonth = (date: Date) => date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-  const isLastMonth = (date: Date) => date.getMonth() === lastMonth && date.getFullYear() === lastYear;
-  const isToday = (date: Date) => date.getFullYear() === currentYear && date.getMonth() === currentMonth && date.getDate() === currentDayNum;
+  const isCurrentMonth = (date: Date) => date.getUTCMonth() === currentMonth && date.getUTCFullYear() === currentYear;
+  const isLastMonth = (date: Date) => date.getUTCMonth() === lastMonth && date.getUTCFullYear() === lastYear;
+  const isToday = (date: Date) => date.getUTCFullYear() === currentYear && date.getUTCMonth() === currentMonth && date.getUTCDate() === currentDayNum;
 
   // 1. Top SP by Sold Volume
   const getVolume = (sp: any, filterFn: (d: Date) => boolean) => sp.deals.filter((d: any) => filterFn(new Date(d.dateClosed))).reduce((sum: number, d: any) => sum + (d.salesPrice || 0), 0);
