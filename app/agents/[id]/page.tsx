@@ -151,25 +151,38 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   let weeklyPoints = 0;
   let monthlyPoints = 0;
 
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const parts = new Intl.DateTimeFormat('en-US', { 
+    timeZone: 'America/Denver',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  }).formatToParts(new Date());
+  
+  let currentYearGamification = 0, currentMonthIndexGamification = 0, currentDayNumGamification = 0;
+  for (const part of parts) {
+    if (part.type === 'year') currentYearGamification = parseInt(part.value, 10);
+    if (part.type === 'month') currentMonthIndexGamification = parseInt(part.value, 10);
+    if (part.type === 'day') currentDayNumGamification = parseInt(part.value, 10);
+  }
+
+  const todayStart = new Date(currentYearGamification, currentMonthIndexGamification - 1, currentDayNumGamification);
   
   // Calculate start of week (Monday)
-  const currentDay = now.getDay();
+  const currentDay = todayStart.getDay();
   const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay; // if Sunday (0), go back 6 days
   const weekStart = new Date(todayStart);
   weekStart.setDate(todayStart.getDate() + diffToMonday);
 
   // Calculate weekdays in current month
   let weekdaysInMonth = 0;
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const daysInMonth = new Date(currentYearGamification, currentMonthIndexGamification, 0).getDate();
   for (let i = 1; i <= daysInMonth; i++) {
-    const day = new Date(now.getFullYear(), now.getMonth(), i).getDay();
+    const day = new Date(currentYearGamification, currentMonthIndexGamification - 1, i).getDay();
     if (day !== 0 && day !== 6) weekdaysInMonth++;
   }
   const monthlyTarget = weekdaysInMonth * 61;
 
-  const currentMonthStartLocal = new Date(now.getFullYear(), now.getMonth(), 1);
+  const currentMonthStartLocal = new Date(currentYearGamification, currentMonthIndexGamification - 1, 1);
 
   for (const dt of agent.dailyTrackers) {
     const dtDate = new Date(dt.date);
