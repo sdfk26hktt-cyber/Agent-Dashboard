@@ -101,8 +101,8 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Invoice for {targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontWeight: 600, fontSize: '1.25rem' }}>BURDS Tracker</div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>123 Corporate Blvd<br/>Suite 100<br/>Business City, ST 12345</p>
+          <div style={{ fontWeight: 600, fontSize: '1.25rem' }}>The Brian Burds Home Selling Team</div>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>1414 N Oregon<br/>El Paso, TX 79902</p>
         </div>
       </div>
 
