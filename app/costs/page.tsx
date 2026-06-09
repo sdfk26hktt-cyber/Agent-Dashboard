@@ -4,7 +4,12 @@ import { addCostEntry, deleteCost } from '@/app/actions'
 
 export default async function CostsLedger() {
   const showingPartners = await prisma.agent.findMany({
-    where: { role: 'SHOWING_PARTNER' },
+    where: { 
+      OR: [
+        { role: 'SHOWING_PARTNER' },
+        { role: 'EMPIRE_BUILDER' }
+      ]
+    },
     include: { supervisor: true }
   })
 
@@ -31,9 +36,9 @@ export default async function CostsLedger() {
               </div>
               
               <div>
-                <label className="label" htmlFor="showingPartnerId">Showing Partner</label>
+                <label className="label" htmlFor="showingPartnerId">Agent (SP/EB)</label>
                 <select id="showingPartnerId" name="showingPartnerId" className="input" required>
-                  <option value="">Select a partner</option>
+                  <option value="">Select an agent</option>
                   {showingPartners.map(sp => (
                     <option key={sp.id} value={sp.id}>{sp.name} (Sup: {sp.supervisor?.name || 'None'})</option>
                   ))}

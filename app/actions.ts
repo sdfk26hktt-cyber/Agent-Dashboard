@@ -92,7 +92,7 @@ export async function addCostEntry(data: FormData) {
     include: { supervisor: true }
   })
 
-  if (!sp || !sp.supervisorId) throw new Error('Showing Partner must have a supervisor')
+  if (!sp || !sp.supervisorId) throw new Error('Agent must have a supervisor')
 
   const spStartDate = new Date(sp.startDate)
   const costMonth = new Date(month)
