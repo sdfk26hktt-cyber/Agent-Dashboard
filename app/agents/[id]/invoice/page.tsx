@@ -72,7 +72,10 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
   for (const sp of supervisorSps) {
     const monthGci = sp.deals.reduce((acc: number, d: any) => {
       if (d.salesPrice && d.commissionPercentage) {
-        return acc + (d.salesPrice * (d.commissionPercentage / 100));
+        const totalComm = d.salesPrice * (d.commissionPercentage / 100);
+        const referralCost = totalComm * ((d.referralPercentage || 0) / 100);
+        const netComm = totalComm - referralCost;
+        return acc + netComm;
       }
       return acc;
     }, 0);

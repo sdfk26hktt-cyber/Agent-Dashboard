@@ -43,8 +43,10 @@ export default async function Dashboard() {
       if (dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear) {
         currentMonthDealsCount++;
         if (deal.salesPrice && deal.commissionPercentage) {
-           const gross = deal.salesPrice * (deal.commissionPercentage / 100);
-           currentMonthGrossCommission += gross;
+           const totalComm = deal.salesPrice * (deal.commissionPercentage / 100);
+           const referralCost = totalComm * ((deal.referralPercentage || 0) / 100);
+           const netComm = totalComm - referralCost;
+           currentMonthGrossCommission += netComm;
         }
       }
     }
