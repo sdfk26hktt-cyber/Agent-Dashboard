@@ -92,13 +92,13 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
   const netAmount = totalCost + totalBonusCost - overrideCredit;
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem', backgroundColor: 'white', color: 'black', borderRadius: '8px' }}>
-      <div className="no-print" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between' }}>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '1rem 2rem', backgroundColor: 'white', color: 'black', borderRadius: '8px' }}>
+      <div className="no-print" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
         <Link href={`/agents/${agent.id}`} className="btn btn-secondary">&larr; Back to Profile</Link>
         <PrintButton />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>INVOICE</h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Invoice for {targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
@@ -109,14 +109,14 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
         </div>
       </div>
 
-      <div style={{ marginBottom: '3rem' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
         <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bill To</h3>
         <p style={{ fontSize: '1.25rem', fontWeight: 600 }}>{agent.name}</p>
         <p style={{ color: 'var(--text-secondary)' }}>Team Agent</p>
       </div>
 
       <div className="table-responsive">
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '3rem', minWidth: '600px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1.5rem', minWidth: '600px' }}>
           <thead>
             <tr style={{ borderBottom: '2px solid black', textAlign: 'left' }}>
               <th style={{ padding: '0.75rem', textTransform: 'uppercase', fontSize: '0.875rem' }}>Description</th>
@@ -126,22 +126,22 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
           <tbody>
             {spBonuses.map(bonus => (
               <tr key={`bonus-${bonus.sp.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                <td style={{ padding: '1rem 0.75rem' }}>
+                <td style={{ padding: '0.5rem 0.75rem' }}>
                   <div style={{ fontWeight: 500 }}>Showing Partner Bonus Share (50/50 split of $1,500)</div>
                   <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>For: {bonus.sp.name} ($28k+ GCI Achieved)</div>
                 </td>
-                <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500 }}>
+                <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', fontWeight: 500 }}>
                   ${bonus.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
               </tr>
             ))}
             {costs.map(cost => (
               <tr key={cost.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                <td style={{ padding: '1rem 0.75rem' }}>
+                <td style={{ padding: '0.5rem 0.75rem' }}>
                   <div style={{ fontWeight: 500 }}>Showing Partner Cost Share</div>
                   <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>For: {cost.showingPartner.name}</div>
                 </td>
-                <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500 }}>
+                <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', fontWeight: 500 }}>
                   ${cost.supervisorShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
               </tr>
@@ -150,13 +150,13 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
               const credit = gci.amount * 0.095;
               return (
                 <tr key={gci.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                  <td style={{ padding: '1rem 0.75rem' }}>
+                  <td style={{ padding: '0.5rem 0.75rem' }}>
                     <div style={{ fontWeight: 500 }}>GCI Override Credit (9.5%)</div>
                     <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
                       Source: {gci.sourceAgent ? gci.sourceAgent.name : 'Unknown/Legacy Agent'} (Gross: ${gci.amount.toLocaleString()})
                     </div>
                   </td>
-                  <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#16a34a' }}>
+                  <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#16a34a' }}>
                     -${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                 </tr>
@@ -164,7 +164,7 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
             })}
             {deals.map(deal => (
               <tr key={`deal-${deal.id}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                <td style={{ padding: '1rem 0.75rem' }}>
+                <td style={{ padding: '0.5rem 0.75rem' }}>
                   <div style={{ fontWeight: 500 }}>
                     Team Agent Deal Logged
                     {deal.clientName && <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}> - {deal.clientName}</span>}
@@ -175,7 +175,7 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
                     {deal.commissionPercentage && ` (${deal.commissionPercentage}%)`}
                   </div>
                 </td>
-                <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>
+                <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>
                   -
                 </td>
               </tr>
