@@ -22,8 +22,9 @@ export default async function LeaderboardPage() {
     }
   });
 
-  const showingPartners = allAgents.filter(a => a.role === 'SHOWING_PARTNER' || a.role === 'EMPIRE_BUILDER');
-  const teamAgents = allAgents.filter(a => a.role === 'TEAM_AGENT');
+  const activeAgents = allAgents.filter(a => a.isActive);
+  const showingPartners = activeAgents.filter(a => a.role === 'SHOWING_PARTNER' || a.role === 'EMPIRE_BUILDER');
+  const teamAgents = activeAgents.filter(a => a.role === 'TEAM_AGENT');
 
   const parts = new Intl.DateTimeFormat('en-US', { 
     timeZone: 'America/Denver',
@@ -68,11 +69,11 @@ export default async function LeaderboardPage() {
 
   // 4. Top Overall by 61-point Daily Tracker
   const getTrackerPoints = (agent: any, filterFn: (d: Date) => boolean) => agent.dailyTrackers.filter((t: any) => filterFn(new Date(t.date))).reduce((sum: number, t: any) => sum + t.totalPoints, 0);
-  const overallByTrackerCurrent = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
-  const overallByTrackerLast = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
+  const overallByTrackerCurrent = activeAgents.map(a => ({ ...a, value: getTrackerPoints(a, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
+  const overallByTrackerLast = activeAgents.map(a => ({ ...a, value: getTrackerPoints(a, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
   
   // 5. Daily Leaderboard (Today)
-  const overallByTrackerToday = allAgents.map(a => ({ ...a, value: getTrackerPoints(a, isToday) })).sort((a, b) => b.value - a.value);
+  const overallByTrackerToday = activeAgents.map(a => ({ ...a, value: getTrackerPoints(a, isToday) })).sort((a, b) => b.value - a.value);
 
   // 5. Top Team Agent by Graduated SP GCI
   const getGradGci = (ta: any, filterFn: (d: Date) => boolean) => ta.gciEntries.filter((gci: any) => filterFn(new Date(gci.month))).reduce((sum: number, gci: any) => {

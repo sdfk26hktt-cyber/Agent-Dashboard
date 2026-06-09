@@ -17,7 +17,7 @@ export default async function Dashboard() {
   }
 
   const teamAgents = await prisma.agent.findMany({
-    where: { role: 'TEAM_AGENT' },
+    where: { role: 'TEAM_AGENT', isActive: true },
     include: {
       showingPartners: {
         include: {
@@ -27,7 +27,7 @@ export default async function Dashboard() {
     }
   })
   const allShowingPartners = await prisma.agent.findMany({
-    where: { role: 'SHOWING_PARTNER' },
+    where: { role: 'SHOWING_PARTNER', isActive: true },
     include: { deals: true }
   });
 

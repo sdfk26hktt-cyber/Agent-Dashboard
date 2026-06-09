@@ -15,10 +15,13 @@ export default async function AgentsList() {
     orderBy: { role: 'asc' }
   })
 
-  const showingPartnersCount = allAgents.filter(a => a.role === 'SHOWING_PARTNER').length
-  const teamAgentsCount = allAgents.filter(a => a.role === 'TEAM_AGENT').length
-  const empireBuildersCount = allAgents.filter(a => a.role === 'EMPIRE_BUILDER').length
-  const adminCount = allAgents.filter(a => a.role === 'ADMIN').length
+  const activeAgents = allAgents.filter(a => a.isActive)
+  const inactiveAgents = allAgents.filter(a => !a.isActive)
+
+  const showingPartnersCount = activeAgents.filter(a => a.role === 'SHOWING_PARTNER').length
+  const teamAgentsCount = activeAgents.filter(a => a.role === 'TEAM_AGENT').length
+  const empireBuildersCount = activeAgents.filter(a => a.role === 'EMPIRE_BUILDER').length
+  const adminCount = activeAgents.filter(a => a.role === 'ADMIN').length
 
   return (
     <div>
@@ -51,7 +54,14 @@ export default async function AgentsList() {
           <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}>Admins</div>
         </div>
       </div>
-      <AgentsTableClient agents={allAgents} />
+      <AgentsTableClient agents={activeAgents} />
+
+      {inactiveAgents.length > 0 && (
+        <div style={{ marginTop: '4rem' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>Offboarded Agents</h2>
+          <AgentsTableClient agents={inactiveAgents} />
+        </div>
+      )}
     </div>
   )
 }

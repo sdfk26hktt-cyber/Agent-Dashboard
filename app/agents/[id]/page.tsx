@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
-import { addDeal, graduateAgent, convertToEmpireBuilder, updatePassword } from '@/app/actions'
+import { addDeal, graduateAgent, convertToEmpireBuilder, updatePassword, toggleAgentStatus } from '@/app/actions'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import DeleteAgentButton from '@/app/components/DeleteAgentButton'
@@ -145,6 +145,7 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
   const graduateAction = graduateAgent.bind(null, agent.id);
   const convertEmpireAction = convertToEmpireBuilder.bind(null, agent.id);
   const updatePasswordAction = updatePassword.bind(null, agent.id);
+  const toggleAgentStatusAction = toggleAgentStatus.bind(null, agent.id, !agent.isActive);
 
   // Gamification Calculations
   let dailyPoints = 0;
@@ -212,6 +213,11 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
               <span className={`badge ${agent.role === 'TEAM_AGENT' ? 'badge-green' : agent.role === 'EMPIRE_BUILDER' ? 'badge-red' : agent.role === 'ADMIN' ? 'badge-purple' : 'badge-blue'}`}>
                 {agent.role === 'TEAM_AGENT' ? 'Team Agent' : agent.role === 'EMPIRE_BUILDER' ? 'Empire Builder' : agent.role === 'ADMIN' ? 'Admin' : 'Showing Partner'}
               </span>
+              {!agent.isActive && (
+                <span className="badge" style={{ backgroundColor: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>
+                  Offboarded (Inactive)
+                </span>
+              )}
               <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Started: {new Date(agent.startDate).toLocaleDateString()}</span>
             </div>
             {agent.supervisor && (
@@ -588,6 +594,20 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                       </form>
                     </div>
                   )}
+
+                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '2rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', color: 'var(--accent-primary)', marginBottom: '0.5rem' }}>Agent Status</h3>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                      {agent.isActive 
+                        ? 'Offboard this agent to hide them from the dashboard and leaderboards. Their historical data will be saved.' 
+                        : 'Reactivate this agent to make them visible on the dashboard and leaderboards again.'}
+                    </p>
+                    <form action={toggleAgentStatusAction}>
+                      <button type="submit" className="btn" style={{ backgroundColor: agent.isActive ? 'var(--surface-hover)' : 'var(--success)' }}>
+                        {agent.isActive ? 'Offboard Agent' : 'Reactivate Agent'}
+                      </button>
+                    </form>
+                  </div>
 
                   <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '2rem' }}>
                     <h3 style={{ fontSize: '1.25rem', color: 'var(--danger)', marginBottom: '0.5rem' }}>Danger Zone</h3>

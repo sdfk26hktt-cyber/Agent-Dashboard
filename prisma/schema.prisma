@@ -19,6 +19,7 @@ model Agent {
   role           String    @default("SHOWING_PARTNER") // ADMIN, TEAM_AGENT, or SHOWING_PARTNER
   startDate      DateTime
   graduatedAt    DateTime?
+  isActive       Boolean   @default(true)
   
   // Self-relation: An agent can be supervised by another agent
   supervisorId   String?

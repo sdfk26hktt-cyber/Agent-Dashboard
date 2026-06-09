@@ -358,3 +358,16 @@ export async function convertProspectToDeal(prospectId: string, agentId: string)
   revalidatePath(`/agents/${agentId}`);
   revalidatePath('/');
 }
+
+export async function toggleAgentStatus(agentId: string, isActive: boolean) {
+  await prisma.agent.update({
+    where: { id: agentId },
+    data: { isActive }
+  });
+  
+  revalidatePath(`/agents`);
+  revalidatePath(`/agents/${agentId}`);
+  revalidatePath('/');
+  revalidatePath('/leaderboard');
+  revalidatePath('/costs');
+}

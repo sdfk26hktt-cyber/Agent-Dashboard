@@ -21,7 +21,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: email }
         })
 
-        if (!agent || !agent.password) {
+        if (!agent || !agent.password || !agent.isActive) {
           return null
         }
 

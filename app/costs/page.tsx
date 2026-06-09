@@ -8,7 +8,8 @@ export default async function CostsLedger() {
       OR: [
         { role: 'SHOWING_PARTNER' },
         { role: 'EMPIRE_BUILDER' }
-      ]
+      ],
+      isActive: true
     },
     include: { supervisor: true }
   })
