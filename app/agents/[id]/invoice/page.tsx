@@ -98,22 +98,30 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
         <PrintButton />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>INVOICE</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Invoice for {targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontWeight: 600, fontSize: '1.25rem' }}>The Brian Burds Home Selling Team</div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>1414 N Oregon<br/>El Paso, TX 79902</p>
-        </div>
-      </div>
-
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bill To</h3>
-        <p style={{ fontSize: '1.25rem', fontWeight: 600 }}>{agent.name}</p>
-        <p style={{ color: 'var(--text-secondary)' }}>Team Agent</p>
-      </div>
+      <table style={{ width: '100%', borderSpacing: 0 }}>
+        <thead style={{ display: 'table-header-group' }}>
+          <tr>
+            <td style={{ paddingBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h1 style={{ fontSize: '2.5rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>INVOICE</h1>
+                  <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Invoice for {targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: 600, fontSize: '1.25rem' }}>The Brian Burds Home Selling Team</div>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>1414 N Oregon<br/>El Paso, TX 79902</p>
+                  
+                  <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bill To</h3>
+                  <p style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>{agent.name}</p>
+                  <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Team Agent</p>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
 
       <div className="table-responsive">
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1.5rem', minWidth: '600px' }}>
@@ -200,6 +208,10 @@ export default async function InvoicePage({ params, searchParams }: { params: Pr
           </div>
         </div>
       </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   )
 }
