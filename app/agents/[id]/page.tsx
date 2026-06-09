@@ -564,58 +564,44 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
 
           {isAdmin && (
             <div className="card" style={{ marginTop: '2rem' }}>
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Admin: Profile Settings</h2>
+              
+              <div style={{ marginBottom: '2rem' }}>
                 <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Edit Login Credentials</h3>
                 <AdminEditProfileForm agent={agent} />
               </div>
-
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
-                <h3 style={{ fontSize: '1rem', color: 'var(--danger)', marginBottom: '1rem' }}>Danger Zone</h3>
-                <DeleteAgentButton agentId={agent.id} agentName={agent.name} />
-              </div>
-            </div>
-          )}
-
-          {!isShowingPartner && (
-            <div style={{ marginTop: '2rem' }}>
-              {isAdmin && (
-                <div className="card" style={{ marginTop: '2rem' }}>
-                  <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Admin: Profile Settings</h2>
-                  <AdminEditProfileForm agent={agent} />
-                  
-                  {isShowingPartner && (
-                    <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '2rem' }}>
-                      <h3 style={{ fontSize: '1.25rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>Role Conversion</h3>
-                      <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Instantly convert this showing partner into an Empire Builder.</p>
-                      <form action={convertEmpireAction}>
-                        <button type="submit" className="btn" style={{ backgroundColor: 'var(--primary)' }}>
-                          Convert to Empire Builder
-                        </button>
-                      </form>
-                    </div>
-                  )}
-
-                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '2rem' }}>
-                    <h3 style={{ fontSize: '1.25rem', color: 'var(--accent-primary)', marginBottom: '0.5rem' }}>Agent Status</h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                      {agent.isActive 
-                        ? 'Offboard this agent to hide them from the dashboard and leaderboards. Their historical data will be saved.' 
-                        : 'Reactivate this agent to make them visible on the dashboard and leaderboards again.'}
-                    </p>
-                    <form action={toggleAgentStatusAction}>
-                      <button type="submit" className="btn" style={{ backgroundColor: agent.isActive ? 'var(--surface-hover)' : 'var(--success)' }}>
-                        {agent.isActive ? 'Offboard Agent' : 'Reactivate Agent'}
-                      </button>
-                    </form>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '2rem' }}>
-                    <h3 style={{ fontSize: '1.25rem', color: 'var(--danger)', marginBottom: '0.5rem' }}>Danger Zone</h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Permanently remove this agent and all associated data.</p>
-                    <DeleteAgentButton agentId={agent.id} agentName={agent.name} />
-                  </div>
+              
+              {isShowingPartner && (
+                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginBottom: '2rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>Role Conversion</h3>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Instantly convert this showing partner into an Empire Builder.</p>
+                  <form action={convertEmpireAction}>
+                    <button type="submit" className="btn" style={{ backgroundColor: 'var(--primary)' }}>
+                      Convert to Empire Builder
+                    </button>
+                  </form>
                 </div>
               )}
+
+              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginBottom: '2rem' }}>
+                <h3 style={{ fontSize: '1.25rem', color: 'var(--accent-primary)', marginBottom: '0.5rem' }}>Agent Status</h3>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                  {agent.isActive 
+                    ? 'Offboard this agent to hide them from the dashboard and leaderboards. Their historical data will be saved.' 
+                    : 'Reactivate this agent to make them visible on the dashboard and leaderboards again.'}
+                </p>
+                <form action={toggleAgentStatusAction}>
+                  <button type="submit" className="btn" style={{ backgroundColor: agent.isActive ? 'var(--surface-hover)' : 'var(--success)' }}>
+                    {agent.isActive ? 'Offboard Agent' : 'Reactivate Agent'}
+                  </button>
+                </form>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', color: 'var(--danger)', marginBottom: '0.5rem' }}>Danger Zone</h3>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Permanently remove this agent and all associated data.</p>
+                <DeleteAgentButton agentId={agent.id} agentName={agent.name} />
+              </div>
             </div>
           )}
         </div>
