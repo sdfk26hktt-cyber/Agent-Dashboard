@@ -58,7 +58,8 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
       },
       showingPartners: {
         include: {
-          deals: true
+          deals: true,
+          dailyTrackers: true
         }
       },
       dailyTrackers: {
@@ -202,6 +203,33 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
     }
   }
 
+  const spScoreboardData = agent.showingPartners.map(sp => {
+    let spDaily = 0;
+    let spWeekly = 0;
+    let spMonthly = 0;
+    for (const dt of sp.dailyTrackers || []) {
+      const dtDate = new Date(dt.date);
+      const dtDateStart = new Date(dtDate.getFullYear(), dtDate.getMonth(), dtDate.getDate());
+      
+      if (dtDateStart >= currentMonthStartLocal) {
+        spMonthly += dt.totalPoints;
+      }
+      if (dtDateStart >= weekStart) {
+        spWeekly += dt.totalPoints;
+      }
+      if (dtDateStart.getTime() === todayStart.getTime()) {
+        spDaily += dt.totalPoints;
+      }
+    }
+    return {
+      id: sp.id,
+      name: sp.name,
+      daily: spDaily,
+      weekly: spWeekly,
+      monthly: spMonthly
+    }
+  });
+
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
@@ -241,6 +269,33 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
       <div className="profile-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <DailyTrackerGamification dailyPoints={dailyPoints} weeklyPoints={weeklyPoints} monthlyPoints={monthlyPoints} monthlyTarget={monthlyTarget} />
+          
+          {spScoreboardData.length > 0 && (
+            <div className="card">
+              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Showing Partner Gamification</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {spScoreboardData.map(sp => (
+                  <div key={sp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ fontWeight: 600 }}>{sp.name}</div>
+                    <div style={{ display: 'flex', gap: '1.5rem', textAlign: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>{sp.daily}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Today</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-primary)' }}>{sp.weekly}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Week</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>{sp.monthly}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Month</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           {isBonusEligible && (
             <div className="card">
