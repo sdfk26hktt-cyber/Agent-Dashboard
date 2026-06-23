@@ -79,19 +79,9 @@ export default async function LeaderboardPage() {
   const overallByTrackerToday = activeAgents.map(a => ({ ...a, value: getTrackerPoints(a, isToday) })).sort((a, b) => b.value - a.value);
 
   // 5. Top Team Agent by Graduated SP GCI
-  const getGradGci = (ta: any, filterFn: (d: Date) => boolean) => {
-    if (!ta.showingPartners) return 0;
-    return ta.showingPartners
-      .filter((sp: any) => sp.graduatedAt !== null)
-      .reduce((total: number, sp: any) => {
-        return total + sp.deals.filter((d: any) => filterFn(new Date(d.dateClosed))).reduce((sum: number, d: any) => {
-          if (d.salesPrice && d.commissionPercentage) {
-            return sum + (d.salesPrice * (d.commissionPercentage / 100));
-          }
-          return sum;
-        }, 0);
-      }, 0);
-  };
+  const getGradGci = (ta: any, filterFn: (d: Date) => boolean) => ta.gciEntries.filter((gci: any) => filterFn(new Date(gci.month))).reduce((sum: number, gci: any) => {
+    return sum + gci.amount;
+  }, 0);
   const taByGradGciCurrent = teamAgents.map(ta => ({ ...ta, value: getGradGci(ta, isCurrentMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
   const taByGradGciLast = teamAgents.map(ta => ({ ...ta, value: getGradGci(ta, isLastMonth) })).sort((a, b) => b.value - a.value).slice(0, 10);
 
