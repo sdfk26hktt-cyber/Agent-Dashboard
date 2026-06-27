@@ -20,6 +20,7 @@ model Agent {
   startDate      DateTime
   graduatedAt    DateTime?
   isActive       Boolean   @default(true)
+  sisuId         Int?
   
   // Self-relation: An agent can be supervised by another agent
   supervisorId   String?

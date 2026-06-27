@@ -177,8 +177,12 @@ export async function deleteGci(gciId: string) {
   revalidatePath('/agents/[id]', 'page')
 }
 
-export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, startDateStr?: string) {
+export async function editAgentProfile(agentId: string, name: string, email: string, password?: string, startDateStr?: string, sisuId?: number | null) {
   const dataToUpdate: any = { name, email: email.toLowerCase().trim() }
+  
+  if (sisuId !== undefined) {
+    dataToUpdate.sisuId = sisuId;
+  }
   
   if (password && password.trim().length > 0) {
     dataToUpdate.password = await bcrypt.hash(password.trim(), 10)

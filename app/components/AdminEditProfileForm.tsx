@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { editAgentProfile } from '@/app/actions'
 
-export default function AdminEditProfileForm({ agent }: { agent: { id: string, name: string, email: string | null, role: string, startDate: Date } }) {
+export default function AdminEditProfileForm({ agent }: { agent: { id: string, name: string, email: string | null, role: string, startDate: Date, sisuId?: number | null } }) {
   const [name, setName] = useState(agent.name)
   const [email, setEmail] = useState(agent.email || '')
   const [password, setPassword] = useState('')
+  const [sisuId, setSisuId] = useState(agent.sisuId ? agent.sisuId.toString() : '')
   const [startDateStr, setStartDateStr] = useState(new Date(agent.startDate).toISOString().substring(0, 10))
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -16,7 +17,8 @@ export default function AdminEditProfileForm({ agent }: { agent: { id: string, n
     setLoading(true)
     setMessage('')
     try {
-      await editAgentProfile(agent.id, name, email, password, startDateStr)
+      const parsedSisuId = sisuId.trim() !== '' ? parseInt(sisuId.trim(), 10) : null;
+      await editAgentProfile(agent.id, name, email, password, startDateStr, parsedSisuId)
       setMessage('Profile updated successfully.')
       setPassword('') // clear the password field
     } catch (error) {
@@ -42,6 +44,11 @@ export default function AdminEditProfileForm({ agent }: { agent: { id: string, n
       <div>
         <label className="label" htmlFor="edit-email">Login Email</label>
         <input type="email" id="edit-email" value={email} onChange={e => setEmail(e.target.value)} className="input" required />
+      </div>
+
+      <div>
+        <label className="label" htmlFor="edit-sisu-id">Sisu ID</label>
+        <input type="number" id="edit-sisu-id" value={sisuId} onChange={e => setSisuId(e.target.value)} className="input" placeholder="e.g. 235691" />
       </div>
 
       <div>
