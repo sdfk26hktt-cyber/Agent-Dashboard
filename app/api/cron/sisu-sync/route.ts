@@ -18,14 +18,28 @@ export async function GET(req: Request) {
           equals: new Date(targetDateString)
         },
         agent: {
-          sisuId: { not: null }
+          role: 'SHOWING_PARTNER',
+          supervisor: {
+            sisuId: { not: null }
+          }
         }
       },
-      include: { agent: true }
+      include: { 
+        agent: {
+          include: {
+            supervisor: true
+          }
+        }
+      }
     });
 
+    // Aggregate by Supervisor's Sisu ID since multiple SPs might fall under one TA
+    const supervisorAggregates: Record<number, { dials: number, calls: number }> = {};
+
     for (const tracker of trackers) {
-      if (!tracker.agent.sisuId) continue;
+      if (!tracker.agent.supervisor || !tracker.agent.supervisor.sisuId) continue;
+      
+      const sisuId = tracker.agent.supervisor.sisuId;
 
       let callsCount = 0;
       if (tracker.pointsData) {
@@ -34,10 +48,21 @@ export async function GET(req: Request) {
           callsCount = parseInt(pd.calls.value || 0, 10);
         }
       }
-      
       const dialsCount = tracker.dials || 0;
+
+      if (!supervisorAggregates[sisuId]) {
+        supervisorAggregates[sisuId] = { dials: 0, calls: 0 };
+      }
       
-      if (dialsCount === 0 && callsCount === 0) continue;
+      supervisorAggregates[sisuId].dials += dialsCount;
+      supervisorAggregates[sisuId].calls += callsCount;
+    }
+
+    let successCount = 0;
+
+    for (const [sisuIdStr, aggregates] of Object.entries(supervisorAggregates)) {
+      const sisuId = parseInt(sisuIdStr, 10);
+      if (aggregates.dials === 0 && aggregates.calls === 0) continue;
 
       const payload = {
         increment_all_activities: true,
@@ -46,18 +71,18 @@ export async function GET(req: Request) {
             increment: true,
             date: targetDateString.substring(0, 10),
             activity_type: "DIALS",
-            count: dialsCount
+            count: aggregates.dials
           },
           {
             increment: true,
             date: targetDateString.substring(0, 10),
             activity_type: "CONTA",
-            count: callsCount
+            count: aggregates.calls
           }
         ]
       };
 
-      const res = await fetch(`https://api.sisu.co/api/v1/agent/activity/${tracker.agent.sisuId}/1`, {
+      const res = await fetch(`https://api.sisu.co/api/v1/agent/activity/${sisuId}/1`, {
         method: 'PUT',
         headers: {
           'Authorization': 'Basic YnJpYW4tYnVyZHMtaG9tZS1zZWxsaW5nLXRlYW06MGVmMzI5MDEtYzZhMC00MTY3LTgwZTItYThmMjA5Mzc0NTc1',
@@ -68,11 +93,13 @@ export async function GET(req: Request) {
       });
       
       if (!res.ok) {
-        console.error(`Failed to sync for Sisu ID ${tracker.agent.sisuId}: ${res.statusText}`);
+        console.error(`Failed to sync for Sisu ID ${sisuId}: ${res.statusText}`);
+      } else {
+        successCount++;
       }
     }
 
-    return NextResponse.json({ success: true, count: trackers.length, targetDate: targetDateString });
+    return NextResponse.json({ success: true, count: successCount, targetDate: targetDateString });
   } catch (error: any) {
     console.error("Sisu Sync Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
