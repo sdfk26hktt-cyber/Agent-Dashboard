@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/sisu-sync",
-      "schedule": "1 0 * * *"
-    }
-  ]
-}
