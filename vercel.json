@@ -1,0 +1,9 @@
+{
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/sisu-sync",
+      "schedule": "1 7 * * *"
+    }
+  ]
+}
