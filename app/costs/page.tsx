@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { addCostEntry, deleteCost } from '@/app/actions'
 
 export default async function CostsLedger() {
-  const showingPartners = await prisma.agent.findMany({
+  const showingPartnersRaw = await prisma.agent.findMany({
     where: { 
       OR: [
         { role: 'SHOWING_PARTNER' },
@@ -14,10 +14,22 @@ export default async function CostsLedger() {
     include: { supervisor: true }
   })
 
+  const showingPartners = showingPartnersRaw.sort((a, b) => {
+    const supA = a.supervisor?.name || 'Zzz'; 
+    const supB = b.supervisor?.name || 'Zzz';
+    if (supA < supB) return -1;
+    if (supA > supB) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
   const costEntries = await prisma.costEntry.findMany({
     orderBy: { month: 'desc' },
     include: { showingPartner: { include: { supervisor: true } } }
   })
+
+  const previousMonthDate = new Date();
+  previousMonthDate.setMonth(previousMonthDate.getMonth() - 1);
+  const defaultMonth = previousMonthDate.toISOString().substring(0, 7);
 
   return (
     <div>
@@ -33,7 +45,7 @@ export default async function CostsLedger() {
             <form action={addCostEntry} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label className="label" htmlFor="month">Month</label>
-                <input type="month" id="month" name="month" className="input" required defaultValue={new Date().toISOString().substring(0, 7)} />
+                <input type="month" id="month" name="month" className="input" required defaultValue={defaultMonth} />
               </div>
               
               <div>
