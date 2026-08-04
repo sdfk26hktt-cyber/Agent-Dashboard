@@ -20,6 +20,7 @@ export default async function Dashboard() {
     where: { role: 'TEAM_AGENT', isActive: true },
     include: {
       showingPartners: {
+        where: { isActive: true },
         include: {
           deals: true,
         }
