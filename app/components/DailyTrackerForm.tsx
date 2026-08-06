@@ -163,7 +163,7 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '4rem' }}>
       {!readOnly && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="action-buttons" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginBottom: '2rem' }}>
           <button onClick={handleClear} className="btn" style={{ backgroundColor: 'var(--danger)', color: 'white' }}>Clear Form</button>
           <button onClick={handleSave} className="btn btn-secondary" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Form'}</button>
           <button onClick={handleExportPDF} className="btn">Email/Export PDF</button>
@@ -171,12 +171,12 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
       )}
 
       <fieldset disabled={readOnly} style={{ border: 'none', padding: 0, margin: 0 }}>
-      <div ref={formRef} style={{ backgroundColor: 'white', color: 'black', padding: '3rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+      <div ref={formRef} className="form-container" style={{ backgroundColor: 'white', color: 'black', padding: '3rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '2rem' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Daily Success Habits Tracker</h1>
+          <h1 className="tracker-title" style={{ fontSize: '2.5rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Daily Success Habits Tracker</h1>
           <p style={{ color: '#6b7280', fontSize: '1.25rem' }}>BBHST Tracker System</p>
           
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '4rem', marginTop: '2rem' }}>
+          <div className="agent-date-header" style={{ display: 'flex', justifyContent: 'center', gap: '4rem', marginTop: '2rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>Agent Name</label>
               <div style={{ fontSize: '1.5rem', fontWeight: 700, borderBottom: '1px solid black', padding: '0.25rem 2rem' }}>{agentName}</div>
@@ -201,42 +201,44 @@ export default function DailyTrackerForm({ agentId, agentName, initialData, read
                 </div>
               </div>
               
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f3f4f6', fontSize: '0.875rem', textTransform: 'uppercase', color: '#4b5563' }}>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', width: '50%' }}>Activity</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'center' }}>Points Worth</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'center' }}>Actual</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'center' }}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ACTIVITIES.map(activity => {
-                    const count = pointsData[activity.id] || 0
-                    return (
-                      <tr key={activity.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                        <td style={{ padding: '0.75rem', fontWeight: 500 }}>
-                          {activity.label}
-                          {activity.unit && <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 'normal' }}>(per {activity.unit})</div>}
-                        </td>
-                        <td style={{ padding: '0.75rem', textAlign: 'center', color: '#6b7280' }}>{activity.points}</td>
-                        <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                          <input 
-                            type="number" 
-                            min="0"
-                            value={count || ''}
-                            onChange={(e) => handlePointChange(activity.id, e.target.value)}
-                            style={{ width: '60px', textAlign: 'center', padding: '0.25rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
-                          />
-                        </td>
-                        <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 700 }}>
-                          {count * activity.points}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+              <div className="table-responsive">
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f3f4f6', fontSize: '0.875rem', textTransform: 'uppercase', color: '#4b5563' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', width: '50%' }}>Activity</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'center' }}>Points Worth</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'center' }}>Actual</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'center' }}>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ACTIVITIES.map(activity => {
+                      const count = pointsData[activity.id] || 0
+                      return (
+                        <tr key={activity.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                          <td style={{ padding: '0.75rem', fontWeight: 500 }}>
+                            {activity.label}
+                            {activity.unit && <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 'normal' }}>(per {activity.unit})</div>}
+                          </td>
+                          <td style={{ padding: '0.75rem', textAlign: 'center', color: '#6b7280' }}>{activity.points}</td>
+                          <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                            <input 
+                              type="number" 
+                              min="0"
+                              value={count || ''}
+                              onChange={(e) => handlePointChange(activity.id, e.target.value)}
+                              style={{ width: '60px', textAlign: 'center', padding: '0.25rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 700 }}>
+                            {count * activity.points}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <div style={{ marginBottom: '3rem' }}>
