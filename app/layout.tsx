@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Link from 'next/link'
 import AuthProvider from '@/app/components/AuthProvider'
@@ -6,9 +6,22 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import LogoutButton from "@/app/components/LogoutButton"
 
+export const viewport: Viewport = {
+  themeColor: '#3b82f6',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export const metadata: Metadata = {
   title: 'BBHST Tracker',
   description: 'Track Showing Partners and Team Agents advancement points and costs.',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'BBHST Tracker',
+  },
 }
 
 export default async function RootLayout({

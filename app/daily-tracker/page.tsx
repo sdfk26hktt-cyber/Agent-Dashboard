@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 export default async function DailyTrackerPage({
   searchParams,
 }: {
-  searchParams: { date?: string };
+  searchParams: Promise<{ date?: string }>;
 }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
@@ -35,7 +35,8 @@ export default async function DailyTrackerPage({
     if (part.type === 'day') currentDay = parseInt(part.value, 10);
   }
   
-  const targetDateString = searchParams.date || `${currentYear}-${currentMonthIndex.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
+  const resolvedSearchParams = await searchParams;
+  const targetDateString = resolvedSearchParams.date || `${currentYear}-${currentMonthIndex.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
   const [year, month, day] = targetDateString.split('-').map(Number);
   const targetDate = new Date(year, month - 1, day);
   
