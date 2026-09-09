@@ -363,6 +363,32 @@ export async function convertProspectToDeal(prospectId: string, agentId: string)
   revalidatePath('/');
 }
 
+export async function convertDealToProspect(dealId: string) {
+  const deal = await prisma.deal.findUnique({ where: { id: dealId } });
+  if (!deal) return;
+
+  // Re-create the Prospect
+  await prisma.prospect.create({
+    data: {
+      address: deal.address,
+      clientName: deal.clientName || 'Prospect Client',
+      type: deal.type,
+      estimatedSalesPrice: deal.salesPrice,
+      commissionPercentage: deal.commissionPercentage,
+      referralPercentage: deal.referralPercentage || 0,
+      agentId: deal.agentId
+    }
+  });
+
+  // Delete the Deal
+  await prisma.deal.delete({ where: { id: dealId } });
+
+  revalidatePath(`/agents/${deal.agentId}`);
+  revalidatePath('/agents/[id]', 'page');
+  revalidatePath('/');
+  revalidatePath('/leaderboard');
+}
+
 export async function toggleAgentStatus(agentId: string, isActive: boolean) {
   await prisma.agent.update({
     where: { id: agentId },
@@ -375,3 +401,4 @@ export async function toggleAgentStatus(agentId: string, isActive: boolean) {
   revalidatePath('/leaderboard');
   revalidatePath('/costs');
 }
+

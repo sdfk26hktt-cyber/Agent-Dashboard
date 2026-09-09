@@ -1,9 +1,10 @@
 'use client'
-import { deleteDeal, updateDeal } from '@/app/actions'
+import { deleteDeal, updateDeal, convertDealToProspect } from '@/app/actions'
 import { useState } from 'react'
 
-export default function AdminDealActions({ deal }: { deal: any }) {
+export default function AdminDealActions({ deal, isAdmin = true }: { deal: any, isAdmin?: boolean }) {
   const [isEditing, setIsEditing] = useState(false)
+  const [isConverting, setIsConverting] = useState(false)
   const [address, setAddress] = useState(deal.address)
   const [type, setType] = useState(deal.type)
   const [dateClosed, setDateClosed] = useState(new Date(deal.dateClosed).toISOString().split('T')[0])
@@ -34,9 +35,32 @@ export default function AdminDealActions({ deal }: { deal: any }) {
   }
 
   return (
-    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-      <button onClick={() => setIsEditing(true)} className="btn btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}>Edit</button>
-      <button onClick={async () => { if(confirm('Delete deal?')) await deleteDeal(deal.id) }} className="btn" style={{ backgroundColor: 'var(--danger)', padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}>Delete</button>
+    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
+      <button 
+        disabled={isConverting}
+        onClick={async () => { 
+          if (confirm('Are you sure you want to turn this deal back into an active prospect?')) {
+            setIsConverting(true);
+            try {
+              await convertDealToProspect(deal.id);
+            } finally {
+              setIsConverting(false);
+            }
+          } 
+        }} 
+        className="btn btn-secondary" 
+        style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+        title="Move back to Active Prospect Pipeline"
+      >
+        {isConverting ? 'Moving...' : '↩ Revert to Prospect'}
+      </button>
+      {isAdmin && (
+        <>
+          <button onClick={() => setIsEditing(true)} className="btn btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}>Edit</button>
+          <button onClick={async () => { if(confirm('Delete deal?')) await deleteDeal(deal.id) }} className="btn" style={{ backgroundColor: 'var(--danger)', padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}>Delete</button>
+        </>
+      )}
     </div>
   )
 }
+

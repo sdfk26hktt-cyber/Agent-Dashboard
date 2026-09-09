@@ -14,13 +14,7 @@ export default async function CostsLedger() {
     include: { supervisor: true }
   })
 
-  const showingPartners = showingPartnersRaw.sort((a, b) => {
-    const supA = a.supervisor?.name || 'Zzz'; 
-    const supB = b.supervisor?.name || 'Zzz';
-    if (supA < supB) return -1;
-    if (supA > supB) return 1;
-    return a.name.localeCompare(b.name);
-  });
+  const showingPartners = showingPartnersRaw.sort((a, b) => a.name.localeCompare(b.name));
 
   const costEntries = await prisma.costEntry.findMany({
     orderBy: { month: 'desc' },

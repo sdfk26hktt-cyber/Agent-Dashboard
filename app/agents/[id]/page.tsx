@@ -519,8 +519,8 @@ export default async function AgentProfile({ params }: { params: Promise<{ id: s
                       <span className={`badge ${deal.type === 'DATABANK' ? 'badge-blue' : 'badge-green'}`}>
                         {deal.type}
                       </span>
-                      {isAdmin && (
-                        <AdminDealActions deal={deal} />
+                      {(isAdmin || session.user.id === agent.id) && (
+                        <AdminDealActions deal={deal} isAdmin={isAdmin} />
                       )}
                     </div>
                   ))}
