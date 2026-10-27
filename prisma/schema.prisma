@@ -110,6 +110,7 @@ model Prospect {
   clientName          String
   address             String
   type                String   // DATABANK or SOI
+  status              String   @default("PIPELINE") // PIPELINE or PENDING
   estimatedSalesPrice  Float?
   commissionPercentage Float?
   referralPercentage   Float?   @default(0)

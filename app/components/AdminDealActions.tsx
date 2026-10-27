@@ -39,10 +39,10 @@ export default function AdminDealActions({ deal, isAdmin = true }: { deal: any, 
       <button 
         disabled={isConverting}
         onClick={async () => { 
-          if (confirm('Are you sure you want to turn this deal back into an active prospect?')) {
+          if (confirm('Turn this closed deal back into a Pending deal (under contract)?')) {
             setIsConverting(true);
             try {
-              await convertDealToProspect(deal.id);
+              await convertDealToProspect(deal.id, 'PENDING');
             } finally {
               setIsConverting(false);
             }
@@ -50,9 +50,27 @@ export default function AdminDealActions({ deal, isAdmin = true }: { deal: any, 
         }} 
         className="btn btn-secondary" 
         style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-        title="Move back to Active Prospect Pipeline"
+        title="Move back to Pending Deals"
       >
-        {isConverting ? 'Moving...' : '↩ Revert to Prospect'}
+        {isConverting ? 'Moving...' : '↩ Revert to Pending'}
+      </button>
+      <button 
+        disabled={isConverting}
+        onClick={async () => { 
+          if (confirm('Turn this closed deal back into the Active Pipeline?')) {
+            setIsConverting(true);
+            try {
+              await convertDealToProspect(deal.id, 'PIPELINE');
+            } finally {
+              setIsConverting(false);
+            }
+          } 
+        }} 
+        className="btn btn-secondary" 
+        style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+        title="Move back to Active Pipeline"
+      >
+        {isConverting ? 'Moving...' : '↩ Revert to Pipeline'}
       </button>
       {isAdmin && (
         <>

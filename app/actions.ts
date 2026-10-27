@@ -292,6 +292,7 @@ export async function addProspect(agentId: string, data: FormData) {
   const clientName = data.get('clientName') as string;
   const address = data.get('address') as string;
   const type = data.get('type') as string;
+  const status = (data.get('status') as string) || 'PIPELINE';
   const estimatedSalesPrice = data.get('estimatedSalesPrice') ? parseFloat(data.get('estimatedSalesPrice') as string) : null;
   const commissionPercentage = data.get('commissionPercentage') ? parseFloat(data.get('commissionPercentage') as string) : null;
   const referralPercentage = data.get('referralPercentage') ? parseFloat(data.get('referralPercentage') as string) : 0;
@@ -301,6 +302,7 @@ export async function addProspect(agentId: string, data: FormData) {
       clientName,
       address,
       type,
+      status,
       estimatedSalesPrice,
       commissionPercentage,
       referralPercentage,
@@ -309,11 +311,13 @@ export async function addProspect(agentId: string, data: FormData) {
   });
 
   revalidatePath(`/agents/${agentId}`);
+  revalidatePath('/agents/[id]', 'page');
 }
 export async function editProspect(prospectId: string, agentId: string, data: FormData) {
   const clientName = data.get('clientName') as string;
   const address = data.get('address') as string;
   const type = data.get('type') as string;
+  const status = data.get('status') ? (data.get('status') as string) : undefined;
   const estimatedSalesPrice = data.get('estimatedSalesPrice') ? parseFloat(data.get('estimatedSalesPrice') as string) : null;
   const commissionPercentage = data.get('commissionPercentage') ? parseFloat(data.get('commissionPercentage') as string) : null;
   const referralPercentage = data.get('referralPercentage') ? parseFloat(data.get('referralPercentage') as string) : 0;
@@ -324,6 +328,7 @@ export async function editProspect(prospectId: string, agentId: string, data: Fo
       clientName,
       address,
       type,
+      ...(status ? { status } : {}),
       estimatedSalesPrice,
       commissionPercentage,
       referralPercentage
@@ -331,15 +336,26 @@ export async function editProspect(prospectId: string, agentId: string, data: Fo
   });
 
   revalidatePath(`/agents/${agentId}`);
+  revalidatePath('/agents/[id]', 'page');
 }
 
+export async function updateProspectStatus(prospectId: string, agentId: string, status: string) {
+  await prisma.prospect.update({
+    where: { id: prospectId },
+    data: { status }
+  });
+
+  revalidatePath(`/agents/${agentId}`);
+  revalidatePath('/agents/[id]', 'page');
+}
 
 export async function deleteProspect(prospectId: string, agentId: string) {
   await prisma.prospect.delete({ where: { id: prospectId } });
   revalidatePath(`/agents/${agentId}`);
+  revalidatePath('/agents/[id]', 'page');
 }
 
-export async function convertProspectToDeal(prospectId: string, agentId: string) {
+export async function convertProspectToDeal(prospectId: string, agentId: string, dateClosed?: string) {
   const prospect = await prisma.prospect.findUnique({ where: { id: prospectId } });
   if (!prospect) return;
 
@@ -350,8 +366,9 @@ export async function convertProspectToDeal(prospectId: string, agentId: string)
       clientName: prospect.clientName,
       type: prospect.type,
       salesPrice: prospect.estimatedSalesPrice,
-      commissionPercentage: 3, // Defaulting to 3%, admin can edit later
-      dateClosed: new Date(),
+      commissionPercentage: prospect.commissionPercentage ?? 3,
+      referralPercentage: prospect.referralPercentage || 0,
+      dateClosed: dateClosed ? new Date(dateClosed) : new Date(),
       agentId
     }
   });
@@ -360,19 +377,22 @@ export async function convertProspectToDeal(prospectId: string, agentId: string)
   await prisma.prospect.delete({ where: { id: prospectId } });
 
   revalidatePath(`/agents/${agentId}`);
+  revalidatePath('/agents/[id]', 'page');
   revalidatePath('/');
+  revalidatePath('/leaderboard');
 }
 
-export async function convertDealToProspect(dealId: string) {
+export async function convertDealToProspect(dealId: string, targetStatus: string = 'PENDING') {
   const deal = await prisma.deal.findUnique({ where: { id: dealId } });
   if (!deal) return;
 
-  // Re-create the Prospect
+  // Re-create the Prospect (defaulting to PENDING so it sits between pipeline and closed)
   await prisma.prospect.create({
     data: {
       address: deal.address,
       clientName: deal.clientName || 'Prospect Client',
       type: deal.type,
+      status: targetStatus,
       estimatedSalesPrice: deal.salesPrice,
       commissionPercentage: deal.commissionPercentage,
       referralPercentage: deal.referralPercentage || 0,
